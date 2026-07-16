@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none" role="img" aria-label="Canvas Atelier">
+  <rect width="180" height="180" fill="#F4EFE6"/>
+  <g stroke="#1A1A1A" stroke-opacity="0.08" stroke-width="1">
+    <path d="M30 0v180M60 0v180M90 0v180M120 0v180M150 0v180"/>
+    <path d="M0 30h180M0 60h180M0 90h180M0 120h180M0 150h180"/>
+  </g>
+  <path
+    fill="#1A1A1A"
+    d="M28 118c-3-34 18-62 48-67 22-4 40 4 53 20 15 17 19 38 9 56-12 21-34 34-60 35-25 1-46-12-50-44z"
+  />
+  <ellipse cx="128" cy="52" rx="28" ry="24" fill="#1A1A1A" transform="rotate(-16 128 52)"/>
+  <path
+    fill="#1A1A1A"
+    d="M118 128c8-4 22-2 32 8 7 7 10 18 4 28-8 12-22 14-34 8-12-6-16-18-12-30 2-5 5-10 10-14z"
+  />
+  <ellipse cx="78" cy="98" rx="18" ry="16" fill="#F4EFE6" transform="rotate(14 78 98)"/>
+</svg>
