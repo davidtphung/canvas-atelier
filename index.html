@@ -9,7 +9,21 @@
       name="description"
       content="Canvas Atelier — a museum-quality generative art studio for abstract modernist posters."
     />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('canvas-atelier:theme') || 'system';
+          var dark =
+            pref === 'dark' ||
+            (pref !== 'light' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,8 +31,8 @@
       rel="stylesheet"
     />
     <title>Canvas Atelier</title>
-    <script type="module" crossorigin src="/canvas-atelier/assets/index-TNlFKeEV.js"></script>
-    <link rel="stylesheet" crossorigin href="/canvas-atelier/assets/index-l0RwDPY-.css">
+    <script type="module" crossorigin src="/canvas-atelier/assets/index-Crp--pyG.js"></script>
+    <link rel="stylesheet" crossorigin href="/canvas-atelier/assets/index-CnP0_7Oi.css">
   </head>
   <body>
     <div id="root"></div>
