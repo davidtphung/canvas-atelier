@@ -29,7 +29,7 @@ export function AccessibilityPanel() {
       </div>
 
       <p className="hint" style={{ margin: 0, fontSize: '0.8rem', color: 'var(--charcoal-mid)' }}>
-        Clarity, predictability, and graceful adaptation — controls stay usable with keyboard, touch, and assistive tech.
+        Clarity, predictability, and graceful adaptation - controls stay usable with keyboard, touch, and assistive tech.
       </p>
 
       <div className="field" style={{ gap: '0.5rem' }}>

@@ -121,11 +121,11 @@ export function ExportDialog() {
       toast(
         result.format === 'mp4'
           ? 'MP4 exported (H.264 · plays in QuickTime)'
-          : 'WebM exported — H.264 unavailable in this browser',
+          : 'WebM exported - H.264 unavailable in this browser',
       );
     } catch (err) {
       console.error(err);
-      toast('Video export failed — try a shorter duration');
+      toast('Video export failed - try a shorter duration');
       setProgress({ phase: 'error', progress: 0, message: 'Video export failed' });
     } finally {
       setBusy(false);

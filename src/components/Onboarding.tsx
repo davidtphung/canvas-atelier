@@ -6,10 +6,10 @@ import './Onboarding.css';
 const STEPS = [
   {
     title: 'A finished poster, already',
-    body: 'Canvas Atelier opens with a curated modernist composition — cream paper, fine grid, and organic charcoal forms. You begin inside a museum object, not an empty tool.',
+    body: 'Canvas Atelier opens with a curated modernist composition - cream paper, fine grid, and organic charcoal forms. You begin inside a museum object, not an empty tool.',
   },
   {
-    title: 'Spilled ink — finger & trackpad',
+    title: 'Spilled ink - finger & trackpad',
     body: 'Open Spilled ink (I). Press and drag like a finger through wet paint: puddles smear with viscous lag, grow under pressure, and drip along long strokes. Hover parts nearby ink; two-finger trackpad scroll shoves the composition. Mouse, trackpad, and touch all work.',
   },
   {

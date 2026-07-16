@@ -128,7 +128,7 @@ svg {
   border-radius: var(--radius-full);
 }
 
-/* App shell — scrollable editorial page */
+/* App shell - scrollable editorial page */
 .app-shell {
   display: grid;
   grid-template-rows: var(--topbar-height) 1fr;

@@ -37,7 +37,7 @@ export type BlobNode = {
   /** Relative offset from shape center in unit space (-1..1-ish) */
   angle: number;
   radius: number;
-  /** Control handle softness 0–1 */
+  /** Control handle softness 0-1 */
   tension: number;
 };
 

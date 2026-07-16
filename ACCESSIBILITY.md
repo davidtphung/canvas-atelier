@@ -1,4 +1,4 @@
-# Accessibility notes — Canvas Atelier
+# Accessibility notes - Canvas Atelier
 
 ## Principles
 
@@ -18,7 +18,7 @@
 | Focus | Visible `:focus-visible` rings via design tokens |
 | Motion | `prefers-reduced-motion` + in-app Reduce motion |
 | Contrast | High-contrast mode + system `prefers-contrast` |
-| Targets | Default ≥36–40px; Large targets option → 44–48px |
+| Targets | Default ≥36-40px; Large targets option → 44-48px |
 | Live regions | Toast status region (`aria-live="polite"`) |
 | Canvas | `role="img"` with project name; region labeled |
 

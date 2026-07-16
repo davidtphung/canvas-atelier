@@ -239,7 +239,7 @@ export async function exportVideo(
 
   report({ phase: 'preparing', progress: 0.04, message: 'Checking H.264 support…' });
 
-  // Prefer AVC (H.264) — plays in QuickTime, Finder, iOS, Safari
+  // Prefer AVC (H.264) - plays in QuickTime, Finder, iOS, Safari
   const canAvc = await canEncodeVideo('avc', { width, height });
   const codec =
     (await getFirstEncodableVideoCodec(
@@ -265,7 +265,7 @@ export async function exportVideo(
   report({
     phase: 'preparing',
     progress: 0.06,
-    message: 'H.264 unavailable — recording WebM…',
+    message: 'H.264 unavailable - recording WebM…',
     format: 'webm',
   });
   return encodeWebmFallback({
@@ -306,7 +306,7 @@ async function encodeMp4WithMediabunny(opts: {
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('Canvas unsupported');
 
-  // fastStart: 'in-memory' puts moov atom first — critical for QuickTime / progressive play
+  // fastStart: 'in-memory' puts moov atom first - critical for QuickTime / progressive play
   const target = new BufferTarget();
   const output = new Output({
     format: new Mp4OutputFormat({
@@ -459,7 +459,7 @@ async function encodeWebmFallback(opts: {
   report({
     phase: 'done',
     progress: 1,
-    message: `Saved ${name} (WebM — use VLC if needed)`,
+    message: `Saved ${name} (WebM - use VLC if needed)`,
     format: 'webm',
   });
   return { format: 'webm', blob };

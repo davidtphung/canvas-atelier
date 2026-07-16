@@ -1,4 +1,4 @@
-/* Canvas Atelier — Design Tokens
+/* Canvas Atelier - Design Tokens
    Light: warm cream paper · Dark: museum night charcoal */
 
 :root,
@@ -36,7 +36,7 @@
   --canvas-ink: #1a1a1a;
   --theme-color: #f4efe6;
 
-  /* Typography — clean geometric sans, no serifs / tails */
+  /* Typography - clean geometric sans, no serifs / tails */
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
   --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
@@ -107,7 +107,7 @@
   --z-onboarding: 60;
 }
 
-/* Dark — warm museum night, cream forms on charcoal paper */
+/* Dark - warm museum night, cream forms on charcoal paper */
 [data-theme='dark'] {
   color-scheme: dark;
 

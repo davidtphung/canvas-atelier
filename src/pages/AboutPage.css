@@ -180,7 +180,7 @@
   border-top: 1px solid var(--line);
 }
 
-/* Donate tab — matches Starlink Atlas donate info layout */
+/* Donate tab - matches Starlink Atlas donate info layout */
 .donate-panel {
   display: flex;
   flex-direction: column;

@@ -1,4 +1,4 @@
-/** Donate methods — same info as starlinkatlas.davidtphung.com/about?tab=donate */
+/** Donate methods - same info as starlinkatlas.davidtphung.com/about?tab=donate */
 
 export const VENMO_URL = 'https://venmo.com/davidtphung';
 export const X_PROFILE_URL = 'https://x.com/davidtphung';

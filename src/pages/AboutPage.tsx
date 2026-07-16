@@ -64,7 +64,7 @@ export function AboutPage() {
               <p className="micro about-kicker">About · Studio</p>
               <h1 className="about-title">Canvas Atelier</h1>
               <p className="about-lede">
-                A museum-quality generative art studio for abstract modernist posters —
+                A museum-quality generative art studio for abstract modernist posters,
                 cream paper, a fine grid, and organic ink that moves like spilled paint.
               </p>
             </header>
@@ -113,7 +113,7 @@ export function AboutPage() {
               <p>
                 Canvas Atelier is a quiet, tactile studio for making abstract posters. It draws
                 from mid-century modernism, Eames-era clarity, Apple Human Interface restraint,
-                and the editorial calm of pages like Thinking Machines’ Inkling announcement —
+                and the editorial calm of pages like Thinking Machines’ Inkling announcement,
                 not as a clone, but as a standard of intention.
               </p>
               <p>
@@ -128,19 +128,19 @@ export function AboutPage() {
               <h2 className="section-label">What you can do</h2>
               <ul className="about-list">
                 <li>
-                  <strong>Paint</strong> — Spilled ink mode with pressure-sensitive dabs
+                  <strong>Paint</strong>: Spilled ink mode with pressure-sensitive dabs
                 </li>
                 <li>
-                  <strong>Compose</strong> — Styles, grid, cutouts, natural-language refine
+                  <strong>Compose</strong>: Styles, grid, cutouts, natural-language refine
                 </li>
                 <li>
-                  <strong>Format</strong> — Real art-world canvas sizes, portrait or landscape
+                  <strong>Format</strong>: Real art-world canvas sizes, portrait or landscape
                 </li>
                 <li>
-                  <strong>Export</strong> — High-res PNG and H.264 MP4 for QuickTime
+                  <strong>Export</strong>: High-res PNG and H.264 MP4 for QuickTime
                 </li>
                 <li>
-                  <strong>Save</strong> — Local project library and JSON files
+                  <strong>Save</strong>: Local project library and JSON files
                 </li>
               </ul>
             </section>

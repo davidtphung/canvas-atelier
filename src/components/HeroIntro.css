@@ -15,7 +15,7 @@
   letter-spacing: 0.1em;
 }
 
-/* Clean geometric sans — no serifs, no decorative edges */
+/* Clean geometric sans - no serifs, no decorative edges */
 .hero-title {
   max-width: 18ch;
   font-family: var(--font-ui);

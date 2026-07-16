@@ -108,7 +108,7 @@ export function TopBar() {
           className="btn btn-icon"
           onClick={() => cycleTheme()}
           aria-label={`${themeLabel}. Click to switch theme.`}
-          title={`${themeLabel} — click to cycle Light / Dark / System`}
+          title={`${themeLabel} - click to cycle Light / Dark / System`}
         >
           <ThemeIcon />
         </button>
@@ -157,7 +157,7 @@ export function TopBar() {
               className="btn btn-icon"
               onClick={() => clearCanvas()}
               aria-label="Empty canvas"
-              title="Clear all forms — start from empty paper"
+              title="Clear all forms - start from empty paper"
             >
               <Icons.empty />
             </button>

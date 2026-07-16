@@ -3,7 +3,7 @@ import { useStudioStore } from '../store/useStudioStore';
 import { createDefaultComposition, regenerateComposition } from '../lib/artEngine';
 import './GalleryStrip.css';
 
-/** History / variation rail — quick style previews */
+/** History / variation rail - quick style previews */
 export function GalleryStrip() {
   const canvas = useStudioStore((s) => s.canvas);
   const setStyle = useStudioStore((s) => s.setStyle);
@@ -70,7 +70,7 @@ export function GalleryStrip() {
           type="button"
           className="gallery-card gallery-empty"
           onClick={() => clearCanvas()}
-          aria-label="Empty canvas — clear all forms"
+          aria-label="Empty canvas - clear all forms"
           title="Clear paper and paint from scratch"
         >
           <span className="gallery-empty-mark" aria-hidden="true" />

@@ -42,7 +42,7 @@ function createShape(
   };
 }
 
-/** Curated default museum composition — balanced asymmetry on cream paper */
+/** Curated default museum composition - balanced asymmetry on cream paper */
 export function createDefaultComposition(
   canvas: Pick<CanvasSettings, 'width' | 'height' | 'style' | 'softness' | 'density' | 'shapeColor'>,
   seed = 42,

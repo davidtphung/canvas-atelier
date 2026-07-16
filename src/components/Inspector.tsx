@@ -181,7 +181,7 @@ export function Inspector() {
                 {formatsByFamily[family].map((f) => (
                   <option key={f.id} value={f.id}>
                     {f.label}
-                    {f.note ? ` — ${f.note}` : ''}
+                    {f.note ? `: ${f.note}` : ''}
                   </option>
                 ))}
               </optgroup>

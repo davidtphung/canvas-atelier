@@ -56,7 +56,7 @@ export function UploadPanel() {
             scale: scale * 0.9,
             rotation: 0,
           });
-          toast('Image ready — adjust influence, then generate');
+          toast('Image ready - adjust influence, then generate');
         };
         img.src = dataUrl;
       };

@@ -146,7 +146,7 @@ export function ArtCanvas() {
     }
   }, [shapes]);
 
-  // Physics loop — liquid inertia, finger spring, soft collisions, jiggle
+  // Physics loop - liquid inertia, finger spring, soft collisions, jiggle
   useEffect(() => {
     if (!fluid) return;
     let raf = 0;
@@ -277,7 +277,7 @@ export function ArtCanvas() {
     return body;
   };
 
-  /** Place one pressure-sized ink dab (no history push — caller batches stroke) */
+  /** Place one pressure-sized ink dab (no history push - caller batches stroke) */
   const placePaintDab = (
     x: number,
     y: number,
@@ -361,7 +361,7 @@ export function ArtCanvas() {
       return;
     }
 
-    // Spilled ink — paint with cursor; harder press = larger blob
+    // Spilled ink - paint with cursor; harder press = larger blob
     if (tool === 'ink') {
       const hit = hitShapeAt(x, y);
       historyPushed.current = false;
@@ -500,7 +500,7 @@ export function ArtCanvas() {
       return;
     }
 
-    // Continuous paint stroke — deposit dabs; harder press = larger blobs
+    // Continuous paint stroke - deposit dabs; harder press = larger blobs
     if (drag.mode === 'ink-paint') {
       const pressure = pressureFromEvent(e, drag.samples, drag.downAt);
       drag.lastPressure = pressure;
@@ -708,7 +708,7 @@ export function ArtCanvas() {
     }
   };
 
-  /** Trackpad two-finger scroll / mouse wheel — push ink like a finger swipe */
+  /** Trackpad two-finger scroll / mouse wheel - push ink like a finger swipe */
   const onWheel = (e: React.WheelEvent) => {
     if (reduced || (!inkMode && tool !== 'select' && tool !== 'hand')) return;
     // Don't steal page scroll when user clearly scrolling the document
@@ -817,8 +817,8 @@ export function ArtCanvas() {
   const hint = reduced
     ? 'Select and edit forms on the canvas'
     : inkMode
-      ? 'Paint with cursor — harder press = larger blob · Shift = heavy · Alt+drag = smear · scroll = shove'
-      : 'Throw · select · fling ink — blobs move like liquid paint';
+      ? 'Paint with cursor - harder press = larger blob · Shift = heavy · Alt+drag = smear · scroll = shove'
+      : 'Throw · select · fling ink - blobs move like liquid paint';
 
   return (
     <div className={`art-canvas-frame is-${canvas.orientation}`} role="region" aria-label="Art canvas">
@@ -1045,7 +1045,7 @@ export function ArtCanvas() {
           </g>
         )}
 
-        {/* Brush ring — radius matches pressure size */}
+        {/* Brush ring - radius matches pressure size */}
         {fingerCursor && fluid && (inkMode || tool === 'select' || tool === 'hand') && (
           <g
             className="finger-cursor"

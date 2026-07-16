@@ -180,7 +180,7 @@ export type StudioState = {
   setCanvasFormat: (formatId: CanvasFormatId) => void;
   setOrientation: (orientation: CanvasOrientation) => void;
   regenerate: () => void;
-  /** Clear all forms — keep canvas size, style, and grid */
+  /** Clear all forms - keep canvas size, style, and grid */
   clearCanvas: () => void;
   setImage: (image: UploadedImage | null) => void;
   updateImage: (partial: Partial<UploadedImage>) => void;
@@ -616,7 +616,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       updatedAt: new Date().toISOString(),
     });
     get().scheduleAutosave();
-    get().toast('Empty canvas — ready to paint');
+    get().toast('Empty canvas - ready to paint');
   },
 
   setImage: (image) => {

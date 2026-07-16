@@ -46,7 +46,7 @@ export function autosave(doc: ProjectDocument): void {
   try {
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(doc));
   } catch {
-    // Quota — drop thumbnail and retry
+    // Quota - drop thumbnail and retry
     try {
       const slim = { ...doc, meta: { ...doc.meta, thumbnail: undefined } };
       localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(slim));

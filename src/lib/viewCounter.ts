@@ -87,7 +87,7 @@ export async function recordSiteView(): Promise<{
       return { count: next, source: 'remote' as const };
     }
 
-    // Offline / API failure — still track locally
+    // Offline / API failure - still track locally
     let local = readLocal();
     if (!alreadyCounted) {
       local += 1;

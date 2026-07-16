@@ -10,7 +10,7 @@ export type PaintPressureInput = {
   speed?: number;
   shiftKey?: boolean;
   altKey?: boolean;
-  /** 0–1 from long-press dwell while holding still */
+  /** 0-1 from long-press dwell while holding still */
   dwell?: number;
 };
 

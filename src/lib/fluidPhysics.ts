@@ -147,7 +147,7 @@ export function integrateBody(
     return body.jiggle > 0.02;
   }
 
-  // Viscous finger spring — ink follows cursor like wet paint under a fingertip
+  // Viscous finger spring - ink follows cursor like wet paint under a fingertip
   if (body.fingerTarget) {
     const cx = body.x + body.width / 2;
     const cy = body.y + body.height / 2;
@@ -248,7 +248,7 @@ export function softCollide(a: FluidBody, b: FluidBody): void {
 }
 
 /**
- * Ambient “finger near ink” field — hover / trackpad glide without press
+ * Ambient “finger near ink” field - hover / trackpad glide without press
  * gently displaces nearby puddles (Inkling-like ambient tactility).
  */
 export function applyProximityField(
@@ -275,7 +275,7 @@ export function applyProximityField(
 }
 
 /**
- * Trackpad two-finger scroll / wheel — shove ink across the paper.
+ * Trackpad two-finger scroll / wheel - shove ink across the paper.
  */
 export function applyTrackpadPush(
   body: FluidBody,

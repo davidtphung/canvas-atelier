@@ -8,7 +8,7 @@
     <path d="M0 40h1200M0 80h1200M0 120h1200M0 160h1200M0 200h1200M0 240h1200M0 280h1200M0 320h1200M0 360h1200M0 400h1200M0 440h1200M0 480h1200M0 520h1200M0 560h1200M0 600h1200"/>
   </g>
 
-  <!-- Art mass — right third, clear of title -->
+  <!-- Art mass - right third, clear of title -->
   <g transform="translate(40 0)">
     <path
       fill="#1A1A1A"
@@ -34,7 +34,7 @@
     <circle cx="1020" cy="210" r="26" fill="#F4EFE6"/>
   </g>
 
-  <!-- Clean type lockup — left editorial column -->
+  <!-- Clean type lockup - left editorial column -->
   <g font-family="Arial, Helvetica, sans-serif" fill="#1A1A1A">
     <text x="72" y="200" font-size="14" font-weight="600" letter-spacing="4" fill="#3A3A3A">STUDIO · POSTER SYSTEM</text>
     <text x="72" y="290" font-size="64" font-weight="700" letter-spacing="-1.5">Canvas Atelier</text>

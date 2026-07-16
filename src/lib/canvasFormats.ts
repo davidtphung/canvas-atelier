@@ -73,7 +73,7 @@ export const CANVAS_FORMATS: CanvasFormat[] = [
   { id: 'us-30x40', label: '30 × 40', family: 'us', shortIn: 30, longIn: 40, unit: 'in', note: 'US museum' },
   { id: 'us-36x48', label: '36 × 48', family: 'us', shortIn: 36, longIn: 48, unit: 'in', note: 'US monumental' },
 
-  // French Figure (Figure) formats — portrait figure tradition (cm → in)
+  // French Figure (Figure) formats - portrait figure tradition (cm → in)
   { id: 'eu-f8', label: 'F8', family: 'european', shortIn: 38 / 2.54, longIn: 46 / 2.54, unit: 'cm', note: '46 × 38 cm · Figure' },
   { id: 'eu-f12', label: 'F12', family: 'european', shortIn: 50 / 2.54, longIn: 61 / 2.54, unit: 'cm', note: '61 × 50 cm · Figure' },
   { id: 'eu-f15', label: 'F15', family: 'european', shortIn: 54 / 2.54, longIn: 65 / 2.54, unit: 'cm', note: '65 × 54 cm · Figure' },
@@ -117,7 +117,7 @@ export function physicalInches(
   if (orientation === 'landscape') {
     return { widthIn: format.longIn, heightIn: format.shortIn };
   }
-  // portrait — taller
+  // portrait - taller
   return { widthIn: format.shortIn, heightIn: format.longIn };
 }
 
