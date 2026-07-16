@@ -15,6 +15,7 @@ import { ExportDialog } from './components/ExportDialog';
 import { Onboarding } from './components/Onboarding';
 import { ToastRegion } from './components/ToastRegion';
 import { HeroIntro } from './components/HeroIntro';
+import { CanvasFormatBar } from './components/CanvasFormatBar';
 import './App.css';
 
 export default function App() {
@@ -59,6 +60,7 @@ export default function App() {
         <main className="app-stage" id="main-canvas">
           <HeroIntro />
           <ArtCanvas />
+          <CanvasFormatBar />
           <Timeline />
           <GalleryStrip />
         </main>

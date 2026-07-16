@@ -4,6 +4,7 @@ import { exportPng, exportVideo, type VideoExportProgress } from '../lib/export'
 import { downloadJson } from '../lib/export';
 import { setLastExportMeta, getLastExportMeta } from '../lib/storage';
 import { EXPORT_PRESETS, type ExportSizePreset } from '../types';
+import { formatPhysicalLabel } from '../lib/canvasFormats';
 import { Icons } from './icons';
 import './ExportDialog.css';
 
@@ -12,13 +13,14 @@ export function ExportDialog() {
   const setExportOpen = useStudioStore((s) => s.setExportOpen);
   const getDocument = useStudioStore((s) => s.getDocument);
   const projectName = useStudioStore((s) => s.projectName);
+  const studioCanvas = useStudioStore((s) => s.canvas);
   const animation = useStudioStore((s) => s.animation);
   const updateAnimation = useStudioStore((s) => s.updateAnimation);
   const toast = useStudioStore((s) => s.toast);
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  const [preset, setPreset] = useState<ExportSizePreset>('poster');
+  const [preset, setPreset] = useState<ExportSizePreset | 'canvas'>('canvas');
   const [customW, setCustomW] = useState(2400);
   const [customH, setCustomH] = useState(3600);
   const [filename, setFilename] = useState('');
@@ -45,10 +47,16 @@ export function ExportDialog() {
 
   if (!open) return null;
 
+  const canvasExportScale = 3; // ~print-friendly from studio pixels
   const dims =
     preset === 'custom'
       ? { width: customW, height: customH }
-      : EXPORT_PRESETS[preset];
+      : preset === 'canvas'
+        ? {
+            width: studioCanvas.width * canvasExportScale,
+            height: studioCanvas.height * canvasExportScale,
+          }
+        : EXPORT_PRESETS[preset];
 
   const scene = () => {
     const doc = getDocument();
@@ -176,6 +184,14 @@ export function ExportDialog() {
           <div className="field">
             <span className="field-label">Size</span>
             <div className="segmented export-presets" role="group" aria-label="Export size">
+              <button
+                type="button"
+                aria-pressed={preset === 'canvas'}
+                onClick={() => setPreset('canvas')}
+                title={formatPhysicalLabel(studioCanvas.formatId, studioCanvas.orientation)}
+              >
+                canvas
+              </button>
               {(Object.keys(EXPORT_PRESETS) as Array<keyof typeof EXPORT_PRESETS>).map((key) => (
                 <button
                   key={key}
@@ -191,6 +207,12 @@ export function ExportDialog() {
               </button>
             </div>
           </div>
+          {preset === 'canvas' && (
+            <p className="export-dims micro">
+              Matches paint canvas · {formatPhysicalLabel(studioCanvas.formatId, studioCanvas.orientation)} ·{' '}
+              {studioCanvas.orientation}
+            </p>
+          )}
 
           {preset === 'custom' && (
             <div className="export-custom-dims">
@@ -227,7 +249,11 @@ export function ExportDialog() {
 
           <p className="export-dims micro">
             Output {dims.width} × {dims.height}
-            {preset !== 'custom' && preset !== 'social' ? ` · ${EXPORT_PRESETS[preset as keyof typeof EXPORT_PRESETS].label}` : ''}
+            {preset !== 'custom' &&
+            preset !== 'canvas' &&
+            preset !== 'social'
+              ? ` · ${EXPORT_PRESETS[preset as keyof typeof EXPORT_PRESETS].label}`
+              : ''}
           </p>
 
           <div className="export-video-controls">

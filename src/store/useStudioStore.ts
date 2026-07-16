@@ -4,6 +4,8 @@ import type {
   A11ySettings,
   AnimationSettings,
   ArtStyle,
+  CanvasFormatId,
+  CanvasOrientation,
   CanvasSettings,
   GridSettings,
   HistoryEntry,
@@ -23,6 +25,14 @@ import {
 } from '../lib/artEngine';
 import { snapToGrid } from '../lib/geometry';
 import {
+  DEFAULT_FORMAT_ID,
+  DEFAULT_ORIENTATION,
+  formatPhysicalLabel,
+  remapShapesToCanvas,
+  resolveOrientation,
+  studioPixels,
+} from '../lib/canvasFormats';
+import {
   autosave,
   deleteProjectDocument,
   loadAutosave,
@@ -31,12 +41,13 @@ import {
   saveProjectDocument,
 } from '../lib/storage';
 
-const CANVAS_W = 800;
-const CANVAS_H = 1000;
+const defaultPixels = studioPixels(DEFAULT_FORMAT_ID, DEFAULT_ORIENTATION);
 
 const defaultCanvas: CanvasSettings = {
-  width: CANVAS_W,
-  height: CANVAS_H,
+  width: defaultPixels.width,
+  height: defaultPixels.height,
+  formatId: DEFAULT_FORMAT_ID,
+  orientation: DEFAULT_ORIENTATION,
   background: '#F4EFE6',
   shapeColor: '#1A1A1A',
   density: 1,
@@ -155,6 +166,8 @@ export type StudioState = {
   toggleLock: (id: string) => void;
   toggleHide: (id: string) => void;
   setStyle: (style: ArtStyle) => void;
+  setCanvasFormat: (formatId: CanvasFormatId) => void;
+  setOrientation: (orientation: CanvasOrientation) => void;
   regenerate: () => void;
   setImage: (image: UploadedImage | null) => void;
   updateImage: (partial: Partial<UploadedImage>) => void;
@@ -214,7 +227,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
         projectVersion: auto.meta.version,
         createdAt: auto.meta.createdAt,
         updatedAt: auto.meta.updatedAt,
-        canvas: auto.canvas,
+        canvas: normalizeCanvas(auto.canvas),
         grid: auto.grid,
         shapes: auto.shapes,
         image: auto.image ?? null,
@@ -459,6 +472,70 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     get().toast(`Style: ${style}`);
   },
 
+  setCanvasFormat: (formatId) => {
+    get().pushHistory();
+    const s = get();
+    const orientation = resolveOrientation(formatId, s.canvas.orientation);
+    const { width, height } = studioPixels(formatId, orientation);
+    const shapes = remapShapesToCanvas(
+      s.shapes,
+      s.canvas.width,
+      s.canvas.height,
+      width,
+      height,
+    );
+    set({
+      canvas: {
+        ...s.canvas,
+        formatId,
+        orientation,
+        width,
+        height,
+      },
+      shapes,
+      updatedAt: new Date().toISOString(),
+    });
+    get().scheduleAutosave();
+    get().toast(formatPhysicalLabel(formatId, orientation));
+  },
+
+  setOrientation: (orientation) => {
+    get().pushHistory();
+    const s = get();
+    const next = resolveOrientation(s.canvas.formatId, orientation);
+    if (next === s.canvas.orientation && s.canvas.width && s.canvas.height) {
+      // still allow portrait↔landscape flip when already matching id
+    }
+    const { width, height } = studioPixels(s.canvas.formatId, next);
+    if (width === s.canvas.width && height === s.canvas.height) {
+      set({
+        canvas: { ...s.canvas, orientation: next },
+        updatedAt: new Date().toISOString(),
+      });
+      get().scheduleAutosave();
+      return;
+    }
+    const shapes = remapShapesToCanvas(
+      s.shapes,
+      s.canvas.width,
+      s.canvas.height,
+      width,
+      height,
+    );
+    set({
+      canvas: {
+        ...s.canvas,
+        orientation: next,
+        width,
+        height,
+      },
+      shapes,
+      updatedAt: new Date().toISOString(),
+    });
+    get().scheduleAutosave();
+    get().toast(`${next[0].toUpperCase()}${next.slice(1)} · ${formatPhysicalLabel(s.canvas.formatId, next)}`);
+  },
+
   regenerate: () => {
     get().pushHistory();
     const s = get();
@@ -588,7 +665,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       projectVersion: doc.meta.version,
       createdAt: doc.meta.createdAt,
       updatedAt: doc.meta.updatedAt,
-      canvas: doc.canvas,
+      canvas: normalizeCanvas(doc.canvas),
       grid: doc.grid,
       shapes: doc.shapes,
       image: doc.image ?? null,
@@ -648,7 +725,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       projectVersion: doc.meta.version || 1,
       createdAt: doc.meta.createdAt || new Date().toISOString(),
       updatedAt: doc.meta.updatedAt || new Date().toISOString(),
-      canvas: doc.canvas,
+      canvas: normalizeCanvas(doc.canvas),
       grid: doc.grid,
       shapes: doc.shapes,
       image: doc.image ?? null,
@@ -693,3 +770,28 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     get().toast(op === 'subtract' ? 'Subtract applied' : 'Union tagged');
   },
 }));
+
+/** Backfill format/orientation for older project JSON */
+function normalizeCanvas(canvas: CanvasSettings): CanvasSettings {
+  const formatId = canvas.formatId ?? DEFAULT_FORMAT_ID;
+  let orientation = canvas.orientation;
+  if (!orientation) {
+    if (canvas.width === canvas.height) orientation = 'square';
+    else if (canvas.width > canvas.height) orientation = 'landscape';
+    else orientation = 'portrait';
+  }
+  orientation = resolveOrientation(formatId, orientation);
+  // Prefer stored pixel size if present; otherwise recompute from format
+  if (canvas.width > 0 && canvas.height > 0 && canvas.formatId) {
+    return { ...defaultCanvas, ...canvas, formatId, orientation };
+  }
+  const { width, height } = studioPixels(formatId, orientation);
+  return {
+    ...defaultCanvas,
+    ...canvas,
+    formatId,
+    orientation,
+    width: canvas.width || width,
+    height: canvas.height || height,
+  };
+}

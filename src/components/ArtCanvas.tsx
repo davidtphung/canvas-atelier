@@ -20,6 +20,7 @@ import {
   type FluidSample,
 } from '../lib/fluidPhysics';
 import type { Shape } from '../types';
+import { formatPhysicalLabel, getFormat } from '../lib/canvasFormats';
 import './ArtCanvas.css';
 
 type DragMode = 'move' | 'scale' | 'rotate' | 'paint';
@@ -482,14 +483,32 @@ export function ArtCanvas() {
   // tick forces re-render while fluid moves
   void tick;
   const t = timeRef.current;
+  const physical = formatPhysicalLabel(canvas.formatId, canvas.orientation);
+  const format = getFormat(canvas.formatId);
+  const orientLabel =
+    canvas.orientation === 'portrait'
+      ? 'Portrait'
+      : canvas.orientation === 'landscape'
+        ? 'Landscape'
+        : 'Square';
 
   return (
-    <div className="art-canvas-frame" role="region" aria-label="Art canvas">
+    <div className={`art-canvas-frame is-${canvas.orientation}`} role="region" aria-label="Art canvas">
       <p className="canvas-hint micro" id="canvas-hint">
         {fluid
           ? 'Throw · select · fling ink — blobs move like liquid paint'
           : 'Select and edit forms on the canvas'}
       </p>
+      <p className="canvas-format-badge micro" aria-live="polite">
+        {orientLabel} · {format.label}
+        {format.note ? ` · ${format.note}` : ''} · {physical}
+      </p>
+      <div
+        className="art-canvas-surface"
+        style={{
+          aspectRatio: `${canvas.width} / ${canvas.height}`,
+        }}
+      >
       <svg
         ref={svgRef}
         className={`art-canvas ${fluid ? 'is-fluid' : ''}`}
@@ -689,9 +708,11 @@ export function ArtCanvas() {
           </g>
         )}
       </svg>
+      </div>
       <div className="canvas-caption" aria-hidden="true">
-        <span className="micro">Composition</span>
+        <span className="micro">Composition · {orientLabel}</span>
         <span className="canvas-caption-title">{projectName}</span>
+        <span className="canvas-caption-size">{physical}</span>
       </div>
     </div>
   );

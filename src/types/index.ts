@@ -89,9 +89,43 @@ export type GridSettings = {
   snap: boolean;
 };
 
+export type CanvasOrientation = 'portrait' | 'landscape' | 'square';
+
+export type CanvasFormatId =
+  | 'us-8x10'
+  | 'us-9x12'
+  | 'us-11x14'
+  | 'us-12x16'
+  | 'us-16x20'
+  | 'us-18x24'
+  | 'us-20x24'
+  | 'us-24x30'
+  | 'us-24x36'
+  | 'us-30x40'
+  | 'us-36x48'
+  | 'eu-f8'
+  | 'eu-f12'
+  | 'eu-f15'
+  | 'eu-f20'
+  | 'eu-f30'
+  | 'eu-f40'
+  | 'eu-f50'
+  | 'sq-12'
+  | 'sq-16'
+  | 'sq-20'
+  | 'sq-24'
+  | 'sq-30'
+  | 'a3'
+  | 'a2'
+  | 'a1';
+
 export type CanvasSettings = {
   width: number;
   height: number;
+  /** Real-world paint canvas format id */
+  formatId: CanvasFormatId;
+  /** Portrait / landscape / square (square formats lock to square) */
+  orientation: CanvasOrientation;
   background: string;
   shapeColor: string;
   density: number;

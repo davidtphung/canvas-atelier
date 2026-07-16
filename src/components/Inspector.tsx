@@ -1,5 +1,12 @@
+import { useMemo } from 'react';
 import { useStudioStore } from '../store/useStudioStore';
-import type { ArtStyle } from '../types';
+import type { ArtStyle, CanvasOrientation } from '../types';
+import {
+  CANVAS_FORMATS,
+  familyLabel,
+  formatPhysicalLabel,
+  getFormat,
+} from '../lib/canvasFormats';
 import { Icons } from './icons';
 import './Inspector.css';
 
@@ -9,6 +16,12 @@ const STYLES: { id: ArtStyle; label: string }[] = [
   { id: 'playful', label: 'Playful' },
   { id: 'architectural', label: 'Architectural' },
   { id: 'soft-surreal', label: 'Soft surreal' },
+];
+
+const ORIENTATIONS: { id: CanvasOrientation; label: string }[] = [
+  { id: 'portrait', label: 'Portrait' },
+  { id: 'landscape', label: 'Landscape' },
+  { id: 'square', label: 'Square' },
 ];
 
 export function Inspector() {
@@ -21,6 +34,8 @@ export function Inspector() {
   const updateShape = useStudioStore((s) => s.updateShape);
   const pushHistory = useStudioStore((s) => s.pushHistory);
   const setStyle = useStudioStore((s) => s.setStyle);
+  const setCanvasFormat = useStudioStore((s) => s.setCanvasFormat);
+  const setOrientation = useStudioStore((s) => s.setOrientation);
   const refinePrompt = useStudioStore((s) => s.refinePrompt);
   const setRefinePrompt = useStudioStore((s) => s.setRefinePrompt);
   const applyNlRefine = useStudioStore((s) => s.applyNlRefine);
@@ -29,6 +44,23 @@ export function Inspector() {
   const inspectorOpen = useStudioStore((s) => s.inspectorOpen);
   const toggleInspector = useStudioStore((s) => s.toggleInspector);
   const activePanel = useStudioStore((s) => s.activePanel);
+
+  const format = getFormat(canvas.formatId);
+  const isSquareFormat = Boolean(format.square);
+  const physical = formatPhysicalLabel(canvas.formatId, canvas.orientation);
+
+  const formatsByFamily = useMemo(() => {
+    const groups = {
+      us: [] as typeof CANVAS_FORMATS,
+      european: [] as typeof CANVAS_FORMATS,
+      square: [] as typeof CANVAS_FORMATS,
+      paper: [] as typeof CANVAS_FORMATS,
+    };
+    for (const f of CANVAS_FORMATS) {
+      groups[f.family].push(f);
+    }
+    return groups;
+  }, []);
 
   const selected = shapes.find((s) => s.id === selectedIds[0]);
 
@@ -54,6 +86,81 @@ export function Inspector() {
           <Icons.chevronRight />
         </button>
       </div>
+
+      <section className="inspector-section">
+        <p className="section-label">Paint canvas</p>
+        <p className="hint canvas-size-hint">
+          Real atelier stretcher sizes. Composition remaps when you change format or orientation.
+        </p>
+
+        <div className="field">
+          <span className="field-label">Orientation</span>
+          <div className="segmented orientation-seg" role="group" aria-label="Canvas orientation">
+            {ORIENTATIONS.map((o) => {
+              const lockedSquare = isSquareFormat && o.id !== 'square';
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  aria-pressed={canvas.orientation === o.id}
+                  disabled={lockedSquare}
+                  title={
+                    lockedSquare
+                      ? 'This format is square'
+                      : o.id === 'square'
+                        ? 'Use a square atelier size'
+                        : o.label
+                  }
+                  onClick={() => {
+                    if (o.id === 'square' && !isSquareFormat) {
+                      // Switch to a square format when user picks square orientation
+                      setCanvasFormat('sq-20');
+                      return;
+                    }
+                    setOrientation(o.id);
+                  }}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="canvas-format">
+            Format
+          </label>
+          <select
+            id="canvas-format"
+            className="select"
+            value={canvas.formatId}
+            onChange={(e) => setCanvasFormat(e.target.value as typeof canvas.formatId)}
+            aria-describedby="canvas-physical"
+          >
+            {(
+              ['us', 'european', 'square', 'paper'] as const
+            ).map((family) => (
+              <optgroup key={family} label={familyLabel(family)}>
+                {formatsByFamily[family].map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.label}
+                    {f.note ? ` — ${f.note}` : ''}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        <p id="canvas-physical" className="canvas-physical" role="status">
+          <span className="micro">Physical</span>
+          <strong>{physical}</strong>
+          <span className="field-value">
+            Studio {canvas.width} × {canvas.height}px
+          </span>
+        </p>
+      </section>
 
       <section className="inspector-section">
         <p className="section-label">Style</p>
