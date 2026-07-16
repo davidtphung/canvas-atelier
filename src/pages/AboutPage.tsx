@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { TopBar } from '../components/TopBar';
+import { ViewCounter } from '../components/ViewCounter';
 import { useStudioStore } from '../store/useStudioStore';
 import { DonatePanel } from './DonatePanel';
 import './AboutPage.css';
@@ -193,6 +194,8 @@ export function AboutPage() {
             </footer>
           </div>
         )}
+
+        <ViewCounter variant="plaque" />
       </main>
     </div>
   );

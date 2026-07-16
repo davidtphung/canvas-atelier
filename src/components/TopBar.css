@@ -160,6 +160,13 @@
   flex-shrink: 0;
 }
 
+.topbar-views {
+  display: flex;
+  align-items: center;
+  margin-right: var(--space-1);
+  flex-shrink: 0;
+}
+
 .topbar-nav-link {
   min-height: 32px;
   padding: 0 0.55rem;

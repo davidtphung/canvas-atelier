@@ -7,27 +7,38 @@ type Props = {
   variant?: 'inline' | 'plaque';
 };
 
+/** Shared cache so multiple ViewCounter mounts don't flash different states */
+let sharedCount: number | null = null;
+let sharedSource: 'remote' | 'local' | 'loading' = 'loading';
+let sharedPromise: Promise<{ count: number; source: 'remote' | 'local' }> | null = null;
+
+function loadViews() {
+  if (sharedPromise) return sharedPromise;
+  sharedPromise = recordSiteView().then((result) => {
+    sharedCount = result.count;
+    sharedSource = result.source;
+    return result;
+  });
+  return sharedPromise;
+}
+
 export function ViewCounter({ variant = 'plaque' }: Props) {
-  const [count, setCount] = useState<number | null>(null);
-  const [source, setSource] = useState<'remote' | 'local' | 'loading'>('loading');
+  const [count, setCount] = useState<number | null>(sharedCount);
+  const [source, setSource] = useState<'remote' | 'local' | 'loading'>(sharedSource);
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      const result = await recordSiteView();
+    void loadViews().then((result) => {
       if (cancelled) return;
       setCount(result.count);
       setSource(result.source);
-    })();
+    });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const label =
-    count == null
-      ? '…'
-      : formatViewCount(count);
+  const label = count == null ? '…' : formatViewCount(count);
 
   if (variant === 'inline') {
     return (
@@ -39,6 +50,7 @@ export function ViewCounter({ variant = 'plaque' }: Props) {
             : 'Total studio visits'
         }
         aria-live="polite"
+        aria-label={count == null ? 'Loading visit count' : `${label} studio visits`}
       >
         <span className="view-counter-dot" aria-hidden="true" />
         <span className="micro">Visits</span>

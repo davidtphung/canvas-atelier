@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useStudioStore } from '../store/useStudioStore';
 import { Icons } from './icons';
+import { ViewCounter } from './ViewCounter';
 import './TopBar.css';
 
 export function TopBar() {
@@ -84,6 +85,10 @@ export function TopBar() {
             About
           </Link>
         </nav>
+
+        <div className="topbar-views desktop-only" aria-label="Site visits">
+          <ViewCounter variant="inline" />
+        </div>
 
         <button
           type="button"

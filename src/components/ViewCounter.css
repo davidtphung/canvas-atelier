@@ -98,8 +98,43 @@
   box-shadow: var(--shadow-focus);
 }
 
+/* Floating chip on studio (mobile-friendly, non-blocking) */
+.studio-view-chip {
+  position: fixed;
+  left: max(var(--space-3), env(safe-area-inset-left));
+  bottom: max(var(--space-3), env(safe-area-inset-bottom));
+  z-index: calc(var(--z-chrome) + 1);
+  pointer-events: none;
+}
+
+.studio-view-chip .view-counter--inline {
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: var(--surface-chrome);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Desktop: visits live in the top bar; hide floating chip to reduce clutter */
+@media (min-width: 861px) {
+  .studio-view-chip {
+    display: none;
+  }
+}
+
 @media (max-width: 860px) {
   .view-counter--inline .micro {
     display: none;
   }
+
+  /* Keep clear of bottom toolbar on mobile */
+  .studio-view-chip {
+    bottom: max(4.25rem, calc(env(safe-area-inset-bottom) + 3.75rem));
+  }
+}
+
+/* About page plaque */
+.about-page .view-counter--plaque {
+  width: 100%;
+  margin-top: var(--space-4);
 }

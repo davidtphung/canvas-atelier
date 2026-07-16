@@ -12,6 +12,7 @@ import { Timeline } from '../components/Timeline';
 import { ExportDialog } from '../components/ExportDialog';
 import { Onboarding } from '../components/Onboarding';
 import { ToastRegion } from '../components/ToastRegion';
+import { ViewCounter } from '../components/ViewCounter';
 
 /**
  * Full-viewport studio shell:
@@ -62,6 +63,11 @@ export function StudioPage() {
         <UploadPanel />
         <ProjectLibrary />
         <AccessibilityPanel />
+      </div>
+
+      {/* Mobile / always-visible visit chip (desktop also shows in top bar) */}
+      <div className="studio-view-chip" aria-hidden={false}>
+        <ViewCounter variant="inline" />
       </div>
 
       <ExportDialog />
