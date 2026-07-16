@@ -8,7 +8,7 @@
   height: var(--topbar-height);
   padding: 0 var(--space-4);
   border-bottom: 1px solid var(--line);
-  background: rgba(250, 247, 241, 0.88);
+  background: var(--surface-chrome);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   z-index: var(--z-chrome);
@@ -87,7 +87,7 @@
 
 .project-name-input:hover {
   border-color: var(--line);
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--hover-fill);
 }
 
 .project-name-input:focus-visible {

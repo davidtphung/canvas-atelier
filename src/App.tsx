@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useStudioStore } from './store/useStudioStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { applyDocumentTheme, resolveTheme } from './lib/theme';
 import { TopBar } from './components/TopBar';
 import { Toolbar } from './components/Toolbar';
 import { ArtCanvas } from './components/ArtCanvas';
@@ -35,7 +36,17 @@ export default function App() {
     document.documentElement.dataset.highContrast = String(a11y.highContrast);
     document.documentElement.dataset.reducedMotion = String(a11y.reducedMotion);
     document.documentElement.dataset.largeTargets = String(a11y.largeTargets);
+    applyDocumentTheme(resolveTheme(a11y.theme));
   }, [a11y]);
+
+  // Follow OS theme changes when preference is "system"
+  useEffect(() => {
+    if (a11y.theme !== 'system') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => useStudioStore.getState().syncSystemTheme();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [a11y.theme]);
 
   const showInspector =
     inspectorOpen &&

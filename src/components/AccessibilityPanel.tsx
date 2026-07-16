@@ -1,11 +1,19 @@
 import { useStudioStore } from '../store/useStudioStore';
+import type { ThemePreference } from '../types';
 import { Icons } from './icons';
 import './SidePanel.css';
+
+const THEMES: { id: ThemePreference; label: string; hint: string }[] = [
+  { id: 'light', label: 'Light', hint: 'Cream paper studio' },
+  { id: 'dark', label: 'Dark', hint: 'Museum night' },
+  { id: 'system', label: 'System', hint: 'Match device' },
+];
 
 export function AccessibilityPanel() {
   const activePanel = useStudioStore((s) => s.activePanel);
   const a11y = useStudioStore((s) => s.a11y);
   const updateA11y = useStudioStore((s) => s.updateA11y);
+  const setTheme = useStudioStore((s) => s.setTheme);
   const setPanel = useStudioStore((s) => s.setPanel);
   const setAlive = useStudioStore((s) => s.setAlive);
 
@@ -23,6 +31,27 @@ export function AccessibilityPanel() {
       <p className="hint" style={{ margin: 0, fontSize: '0.8rem', color: 'var(--charcoal-mid)' }}>
         Clarity, predictability, and graceful adaptation — controls stay usable with keyboard, touch, and assistive tech.
       </p>
+
+      <div className="field" style={{ gap: '0.5rem' }}>
+        <p className="section-label">Appearance</p>
+        <div className="segmented" role="group" aria-label="Color theme" style={{ width: '100%' }}>
+          {THEMES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              style={{ flex: 1 }}
+              aria-pressed={a11y.theme === t.id}
+              title={t.hint}
+              onClick={() => setTheme(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <p className="hint" style={{ margin: 0, fontSize: '0.75rem', color: 'var(--charcoal-mid)' }}>
+          Light keeps archival cream paper. Dark uses warm charcoal with cream ink forms.
+        </p>
+      </div>
 
       <ToggleRow
         label="Reduce motion"
@@ -69,6 +98,7 @@ export function AccessibilityPanel() {
           <li><kbd>⌘/Ctrl E</kbd> Export</li>
           <li><kbd>Delete</kbd> Remove selection</li>
           <li><kbd>Arrows</kbd> Nudge</li>
+          <li><kbd>D</kbd> Cycle theme</li>
         </ul>
       </div>
     </aside>

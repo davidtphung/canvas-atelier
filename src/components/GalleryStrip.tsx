@@ -37,7 +37,7 @@ export function GalleryStrip() {
             aria-pressed={canvas.style === p.style}
           >
             <svg viewBox="0 0 80 100" className="gallery-thumb" aria-hidden="true">
-              <rect width="80" height="100" fill="#F4EFE6" />
+              <rect width="80" height="100" fill="var(--canvas-paper, #F4EFE6)" />
               {p.shapes.slice(0, 4).map((s) => (
                 <ellipse
                   key={s.id}
@@ -45,7 +45,7 @@ export function GalleryStrip() {
                   cy={s.y + s.height / 2}
                   rx={s.width / 2}
                   ry={s.height / 2}
-                  fill="#1A1A1A"
+                  fill="var(--canvas-ink, #1A1A1A)"
                   opacity={s.opacity}
                 />
               ))}

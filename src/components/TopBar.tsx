@@ -17,6 +17,13 @@ export function TopBar() {
   const regenerate = useStudioStore((s) => s.regenerate);
   const canvas = useStudioStore((s) => s.canvas);
   const setAlive = useStudioStore((s) => s.setAlive);
+  const theme = useStudioStore((s) => s.a11y.theme);
+  const cycleTheme = useStudioStore((s) => s.cycleTheme);
+
+  const ThemeIcon =
+    theme === 'dark' ? Icons.moon : theme === 'light' ? Icons.sun : Icons.system;
+  const themeLabel =
+    theme === 'dark' ? 'Dark mode' : theme === 'light' ? 'Light mode' : 'System theme';
 
   return (
     <header className="topbar" role="banner">
@@ -57,6 +64,15 @@ export function TopBar() {
         </button>
         <button type="button" className="btn btn-icon desktop-only" onClick={() => redo()} disabled={!future.length} aria-label="Redo">
           <Icons.redo />
+        </button>
+        <button
+          type="button"
+          className="btn btn-icon"
+          onClick={() => cycleTheme()}
+          aria-label={`${themeLabel}. Click to switch theme.`}
+          title={`${themeLabel} — click to cycle Light / Dark / System`}
+        >
+          <ThemeIcon />
         </button>
         <button
           type="button"

@@ -5,7 +5,7 @@
   bottom: 0;
   width: min(var(--inspector-width), 100%);
   z-index: var(--z-panel);
-  background: rgba(250, 247, 241, 0.96);
+  background: var(--surface-solid);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-left: 1px solid var(--line);
@@ -60,7 +60,7 @@
 }
 
 .layer-item:hover {
-  background: rgba(26, 26, 26, 0.04);
+  background: var(--hover-fill);
 }
 
 .layer-item.is-selected {

@@ -195,4 +195,22 @@ export const Icons = {
       p,
       <path d="M4 14c2-6 4-8 8-8s6 2 8 8c-2 2-5 3-8 3s-6-1-8-3zM9 12c.5-1 1.5-1.5 3-1.5" />,
     ),
+  sun: (p: IconProps) =>
+    base(
+      p,
+      <>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </>,
+    ),
+  moon: (p: IconProps) =>
+    base(p, <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7 7 0 1 0 21 14.5z" />),
+  system: (p: IconProps) =>
+    base(
+      p,
+      <>
+        <rect x="3" y="5" width="18" height="12" rx="2" />
+        <path d="M8 21h8M12 17v4" />
+      </>,
+    ),
 };

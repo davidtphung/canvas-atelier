@@ -1,6 +1,6 @@
 .inspector {
   border-left: 1px solid var(--line);
-  background: rgba(250, 247, 241, 0.88);
+  background: var(--surface-chrome);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding: var(--space-4);

@@ -146,11 +146,15 @@ export type AnimationSettings = {
   gridShimmer: boolean;
 };
 
+export type ThemePreference = 'light' | 'dark' | 'system';
+
 export type A11ySettings = {
   reducedMotion: boolean;
   highContrast: boolean;
   largeTargets: boolean;
   announceActions: boolean;
+  /** light | dark | system (follow OS) */
+  theme: ThemePreference;
 };
 
 export type ProjectMeta = {

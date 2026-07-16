@@ -11,7 +11,7 @@
   padding: 0.2rem 0.55rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--hover-fill);
   color: var(--charcoal-mid);
   white-space: nowrap;
 }

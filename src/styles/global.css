@@ -131,9 +131,10 @@ svg {
   min-height: 100dvh;
   height: auto;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 0%, var(--hero-glow), transparent 60%),
     var(--paper);
   color: var(--ink);
+  transition: background-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
 }
 
 .app-main {
@@ -212,7 +213,7 @@ svg {
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: rgba(26, 26, 26, 0.05);
+  background: var(--hover-fill);
 }
 
 .btn-secondary {
@@ -244,7 +245,7 @@ svg {
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: rgba(26, 26, 26, 0.06);
+  background: var(--hover-fill-strong);
   color: var(--ink);
 }
 
@@ -383,7 +384,7 @@ svg {
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
-  background: rgba(26, 26, 26, 0.28);
+  background: var(--backdrop);
   display: flex;
   align-items: center;
   justify-content: center;

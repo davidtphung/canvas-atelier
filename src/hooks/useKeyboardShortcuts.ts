@@ -67,6 +67,9 @@ export function useKeyboardShortcuts() {
       if (e.key === 'g' || e.key === 'G') {
         store.updateGrid({ visible: !store.grid.visible });
       }
+      if (e.key === 'd' || e.key === 'D') {
+        if (!mod) store.cycleTheme();
+      }
     };
 
     window.addEventListener('keydown', onKey);

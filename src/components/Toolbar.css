@@ -5,7 +5,7 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-2);
   border-right: 1px solid var(--line);
-  background: rgba(250, 247, 241, 0.7);
+  background: var(--surface-chrome-soft);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: var(--z-chrome);

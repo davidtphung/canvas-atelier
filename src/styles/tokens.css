@@ -1,7 +1,10 @@
 /* Canvas Atelier — Design Tokens
-   Warm cream paper · charcoal forms · museum restraint */
+   Light: warm cream paper · Dark: museum night charcoal */
 
-:root {
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
   /* Surfaces */
   --paper: #f4efe6;
   --paper-deep: #ebe4d6;
@@ -9,6 +12,8 @@
   --surface: rgba(250, 247, 241, 0.92);
   --surface-solid: #faf7f1;
   --surface-muted: #f0ebe1;
+  --surface-chrome: rgba(250, 247, 241, 0.88);
+  --surface-chrome-soft: rgba(250, 247, 241, 0.7);
   --ink: #1a1a1a;
   --ink-soft: #2c2c2c;
   --charcoal: #1f1f1f;
@@ -16,6 +21,8 @@
   --line: rgba(26, 26, 26, 0.12);
   --line-strong: rgba(26, 26, 26, 0.22);
   --grid-line: rgba(26, 26, 26, 0.09);
+  --hover-fill: rgba(26, 26, 26, 0.05);
+  --hover-fill-strong: rgba(26, 26, 26, 0.08);
   --focus: #2a5a8a;
   --accent: #2a5a8a;
   --accent-soft: rgba(42, 90, 138, 0.12);
@@ -23,6 +30,11 @@
   --danger: #8b3a3a;
   --success: #2f5d45;
   --warning: #8a6a2a;
+  --backdrop: rgba(26, 26, 26, 0.28);
+  --hero-glow: rgba(255, 255, 255, 0.45);
+  --canvas-paper: #f4efe6;
+  --canvas-ink: #1a1a1a;
+  --theme-color: #f4efe6;
 
   /* Typography */
   --font-display: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
@@ -55,7 +67,7 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Radii — restrained, not cartoon */
+  /* Radii */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -63,7 +75,7 @@
   --radius-xl: 20px;
   --radius-full: 999px;
 
-  /* Elevation — soft, paper-like */
+  /* Elevation */
   --shadow-xs: 0 1px 2px rgba(26, 26, 26, 0.04);
   --shadow-sm: 0 2px 8px rgba(26, 26, 26, 0.06), 0 1px 2px rgba(26, 26, 26, 0.04);
   --shadow-md: 0 8px 28px rgba(26, 26, 26, 0.08), 0 2px 6px rgba(26, 26, 26, 0.04);
@@ -95,6 +107,47 @@
   --z-onboarding: 60;
 }
 
+/* Dark — warm museum night, cream forms on charcoal paper */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --paper: #121110;
+  --paper-deep: #0c0b0a;
+  --paper-elevated: #1c1a18;
+  --surface: rgba(28, 26, 24, 0.94);
+  --surface-solid: #1c1a18;
+  --surface-muted: #252220;
+  --surface-chrome: rgba(22, 20, 18, 0.9);
+  --surface-chrome-soft: rgba(22, 20, 18, 0.78);
+  --ink: #ede6d9;
+  --ink-soft: #d4cbb8;
+  --charcoal: #e8e0d2;
+  --charcoal-mid: #a89f90;
+  --line: rgba(237, 230, 217, 0.12);
+  --line-strong: rgba(237, 230, 217, 0.22);
+  --grid-line: rgba(237, 230, 217, 0.1);
+  --hover-fill: rgba(237, 230, 217, 0.06);
+  --hover-fill-strong: rgba(237, 230, 217, 0.1);
+  --focus: #7eb0e0;
+  --accent: #7eb0e0;
+  --accent-soft: rgba(126, 176, 224, 0.16);
+  --selection: rgba(126, 176, 224, 0.22);
+  --danger: #d48484;
+  --success: #7cb89a;
+  --warning: #d4b56a;
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --hero-glow: rgba(255, 240, 220, 0.04);
+  --canvas-paper: #141210;
+  --canvas-ink: #ede6d9;
+  --theme-color: #121110;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35);
+  --shadow-focus: 0 0 0 2px var(--paper), 0 0 0 4px var(--focus);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-fast: 0ms;
@@ -104,16 +157,26 @@
 }
 
 @media (prefers-contrast: more) {
-  :root {
+  :root,
+  [data-theme='light'] {
     --line: rgba(26, 26, 26, 0.35);
     --line-strong: rgba(26, 26, 26, 0.55);
     --grid-line: rgba(26, 26, 26, 0.2);
     --ink: #000000;
     --charcoal: #000000;
   }
+
+  [data-theme='dark'] {
+    --line: rgba(255, 255, 255, 0.35);
+    --line-strong: rgba(255, 255, 255, 0.55);
+    --grid-line: rgba(255, 255, 255, 0.22);
+    --ink: #ffffff;
+    --charcoal: #ffffff;
+  }
 }
 
-[data-high-contrast='true'] {
+[data-high-contrast='true'][data-theme='light'],
+[data-high-contrast='true']:not([data-theme='dark']) {
   --line: rgba(0, 0, 0, 0.4);
   --line-strong: rgba(0, 0, 0, 0.65);
   --grid-line: rgba(0, 0, 0, 0.25);
@@ -122,6 +185,19 @@
   --paper: #fffdf8;
   --surface: #ffffff;
   --surface-solid: #ffffff;
+}
+
+[data-high-contrast='true'][data-theme='dark'] {
+  --line: rgba(255, 255, 255, 0.45);
+  --line-strong: rgba(255, 255, 255, 0.7);
+  --grid-line: rgba(255, 255, 255, 0.28);
+  --ink: #ffffff;
+  --charcoal: #ffffff;
+  --paper: #000000;
+  --surface: #0a0a0a;
+  --surface-solid: #0a0a0a;
+  --canvas-paper: #000000;
+  --canvas-ink: #ffffff;
 }
 
 [data-reduced-motion='true'] * {

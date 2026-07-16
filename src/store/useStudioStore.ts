@@ -40,6 +40,16 @@ import {
   loadProjectDocument,
   saveProjectDocument,
 } from '../lib/storage';
+import {
+  applyDocumentTheme,
+  isDefaultBackground,
+  isDefaultFill,
+  loadThemePreference,
+  resolveTheme,
+  saveThemePreference,
+  THEME_CANVAS,
+  type ThemePreference,
+} from '../lib/theme';
 
 const defaultPixels = studioPixels(DEFAULT_FORMAT_ID, DEFAULT_ORIENTATION);
 
@@ -82,6 +92,7 @@ const defaultA11y: A11ySettings = {
   highContrast: false,
   largeTargets: false,
   announceActions: true,
+  theme: typeof window !== 'undefined' ? loadThemePreference() : 'system',
 };
 
 function snapshot(state: {
@@ -175,6 +186,9 @@ export type StudioState = {
   applyNlRefine: (prompt?: string) => void;
   setRefinePrompt: (v: string) => void;
   setAlive: (alive: boolean) => void;
+  setTheme: (theme: ThemePreference) => void;
+  cycleTheme: () => void;
+  syncSystemTheme: () => void;
   setTimelinePlaying: (v: boolean) => void;
   setTimelineTime: (t: number) => void;
   saveProject: (name?: string) => void;
@@ -219,27 +233,38 @@ export const useStudioStore = create<StudioState>((set, get) => ({
 
   init: () => {
     const seen = localStorage.getItem('canvas-atelier:onboarded');
+    const theme = loadThemePreference();
+    const resolved = resolveTheme(theme);
+    applyDocumentTheme(resolved);
     const auto = loadAutosave();
     if (auto) {
+      const canvas = normalizeCanvas(auto.canvas);
+      // Align default art colors with current theme if still defaults
+      const themed = applyThemeToCanvasState(canvas, auto.shapes, resolved);
       set({
         projectId: auto.meta.id,
         projectName: auto.meta.name,
         projectVersion: auto.meta.version,
         createdAt: auto.meta.createdAt,
         updatedAt: auto.meta.updatedAt,
-        canvas: normalizeCanvas(auto.canvas),
+        canvas: themed.canvas,
         grid: auto.grid,
-        shapes: auto.shapes,
+        shapes: themed.shapes,
         image: auto.image ?? null,
         animation: auto.animation,
         selectedIds: [],
         library: loadLibrary(),
         onboardingOpen: !seen,
+        a11y: { ...defaultA11y, theme },
       });
     } else {
+      const themed = applyThemeToCanvasState(defaultCanvas, get().shapes, resolved);
       set({
         library: loadLibrary(),
         onboardingOpen: !seen,
+        a11y: { ...defaultA11y, theme },
+        canvas: themed.canvas,
+        shapes: themed.shapes,
       });
     }
   },
@@ -341,8 +366,39 @@ export const useStudioStore = create<StudioState>((set, get) => ({
         document.documentElement.dataset.highContrast = String(a11y.highContrast);
         document.documentElement.dataset.reducedMotion = String(a11y.reducedMotion);
       }
+      if (partial.theme) {
+        saveThemePreference(partial.theme);
+        const resolved = resolveTheme(partial.theme);
+        applyDocumentTheme(resolved);
+        const themed = applyThemeToCanvasState(s.canvas, s.shapes, resolved);
+        return { a11y, canvas: themed.canvas, shapes: themed.shapes };
+      }
       return { a11y };
     });
+    if (partial.theme) get().scheduleAutosave();
+  },
+
+  setTheme: (theme) => {
+    get().updateA11y({ theme });
+    const resolved = resolveTheme(theme);
+    get().toast(resolved === 'dark' ? 'Dark mode' : theme === 'system' ? 'System theme' : 'Light mode');
+  },
+
+  cycleTheme: () => {
+    const cur = get().a11y.theme;
+    const next: ThemePreference =
+      cur === 'system' ? 'light' : cur === 'light' ? 'dark' : 'system';
+    get().setTheme(next);
+  },
+
+  /** Re-apply colors when OS theme changes under "system" preference */
+  syncSystemTheme: () => {
+    if (get().a11y.theme !== 'system') return;
+    const resolved = resolveTheme('system');
+    applyDocumentTheme(resolved);
+    const s = get();
+    const themed = applyThemeToCanvasState(s.canvas, s.shapes, resolved);
+    set({ canvas: themed.canvas, shapes: themed.shapes });
   },
 
   updateShape: (id, partial) => {
@@ -770,6 +826,25 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     get().toast(op === 'subtract' ? 'Subtract applied' : 'Union tagged');
   },
 }));
+
+function applyThemeToCanvasState(
+  canvas: CanvasSettings,
+  shapes: Shape[],
+  resolved: 'light' | 'dark',
+): { canvas: CanvasSettings; shapes: Shape[] } {
+  const palette = THEME_CANVAS[resolved];
+  const nextCanvas = { ...canvas };
+  if (isDefaultBackground(canvas.background)) {
+    nextCanvas.background = palette.background;
+  }
+  if (isDefaultFill(canvas.shapeColor)) {
+    nextCanvas.shapeColor = palette.shapeColor;
+  }
+  const nextShapes = shapes.map((s) =>
+    isDefaultFill(s.fill) ? { ...s, fill: palette.shapeColor } : s,
+  );
+  return { canvas: nextCanvas, shapes: nextShapes };
+}
 
 /** Backfill format/orientation for older project JSON */
 function normalizeCanvas(canvas: CanvasSettings): CanvasSettings {
