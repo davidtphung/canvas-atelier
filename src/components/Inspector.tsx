@@ -77,57 +77,38 @@ export function Inspector() {
   }
 
   return (
-    <aside className="inspector panel-scroll" aria-label="Inspector">
+    <aside className="inspector panel-scroll" aria-label="Settings">
       <div className="inspector-header">
-        <p className="section-label">Inspector</p>
+        <p className="section-label">Settings</p>
         <button
           type="button"
-          className="btn btn-icon desktop-only"
-          aria-label="Collapse inspector"
+          className="btn btn-icon"
+          aria-label="Close settings"
           onClick={() => toggleInspector()}
         >
-          <Icons.chevronRight />
+          <Icons.close />
         </button>
       </div>
 
       <section className="inspector-section">
-        <p className="section-label">Start</p>
+        <p className="section-label">Canvas</p>
         <div className="start-actions">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ width: '100%' }}
-            onClick={() => clearCanvas()}
-          >
+          <button type="button" className="btn btn-secondary" style={{ width: '100%' }} onClick={() => clearCanvas()}>
             Empty canvas
           </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            style={{ width: '100%' }}
-            onClick={() => newProject({ empty: true })}
-          >
-            New blank project
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            style={{ width: '100%' }}
-            onClick={() => regenerate()}
-          >
-            Starter composition
-          </button>
+          <div className="start-actions-row">
+            <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => newProject({ empty: true })}>
+              Blank
+            </button>
+            <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => regenerate()}>
+              Starter
+            </button>
+          </div>
         </div>
-        <p className="hint" style={{ margin: 0 }}>
-          Empty paper is ready for spilled ink. Starter loads a curated modernist layout.
-        </p>
       </section>
 
       <section className="inspector-section">
-        <p className="section-label">Paint canvas</p>
-        <p className="hint canvas-size-hint">
-          Real atelier stretcher sizes. Composition remaps when you change format or orientation.
-        </p>
+        <p className="section-label">Size</p>
 
         <div className="field">
           <span className="field-label">Orientation</span>

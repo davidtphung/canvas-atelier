@@ -1,66 +1,55 @@
 .art-canvas-frame {
   position: relative;
-  width: min(var(--canvas-max), 100%);
-  max-width: min(var(--canvas-max), 100%);
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-height: 0;
+}
+
+/* Hide chrome chrome outside the painting surface in studio mode */
+.studio-shell .canvas-hint,
+.studio-shell .canvas-format-badge,
+.studio-shell .canvas-caption {
+  display: none;
 }
 
 .art-canvas-surface {
   width: 100%;
-  max-height: min(78dvh, 880px);
-  /* Keep aspect; height follows width unless max-height clamps */
-  margin-inline: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
-.art-canvas-frame.is-landscape {
-  width: min(96vw, 960px);
-}
-
-.art-canvas-frame.is-landscape .art-canvas-surface {
-  max-height: min(62dvh, 640px);
-  width: 100%;
-}
-
-.art-canvas-frame.is-square {
-  width: min(var(--canvas-max), 72dvh, 720px);
-}
-
-.art-canvas-frame.is-square .art-canvas-surface {
-  max-height: min(72dvh, 720px);
-}
-
-.art-canvas-frame.is-portrait .art-canvas-surface {
-  max-height: min(78dvh, 880px);
-}
-
-.canvas-hint {
-  margin: 0;
-  text-align: center;
-  color: var(--charcoal-mid);
-  letter-spacing: 0.06em;
-}
-
-.canvas-format-badge {
-  margin: 0;
-  text-align: center;
-  color: var(--ink-soft);
-  letter-spacing: 0.04em;
-  text-transform: none;
-  font-weight: 500;
+/* Fit artboard inside available box while keeping aspect ratio */
+.art-canvas-surface {
+  container-type: size;
 }
 
 .art-canvas {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  /* Prefer filling the stage without overflow */
+  width: min(100%, calc(100cqh * var(--art-ratio, 0.8)));
+  height: min(100%, calc(100cqw / var(--art-ratio, 0.8)));
+  aspect-ratio: var(--art-ratio, 4 / 5);
   display: block;
   border-radius: var(--radius-sm);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 1px 0 rgba(255, 255, 255, 0.1) inset,
     var(--shadow-md);
-  touch-action: none; /* trackpad/finger paint - no browser pan/zoom steal */
+  touch-action: none;
   background: var(--paper);
   cursor: grab;
   user-select: none;
@@ -69,12 +58,22 @@
   overscroll-behavior: contain;
 }
 
+/* Fallback when container queries unsupported */
+@supports not (width: 1cqw) {
+  .art-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    max-height: 100%;
+  }
+}
+
 .art-canvas:active {
   cursor: grabbing;
 }
 
 .art-canvas.is-ink-mode {
-  cursor: none; /* custom finger ring */
+  cursor: none;
 }
 
 .art-canvas.is-ink-mode:active {
@@ -84,15 +83,6 @@
 .finger-cursor {
   transition: opacity 80ms var(--ease-out);
   pointer-events: none;
-}
-
-.art-canvas.is-fluid .ink-blob path {
-  transition: opacity 120ms var(--ease-out);
-}
-
-.art-canvas.is-fluid .ink-blob.is-flowing path {
-  /* slight viscosity read while moving */
-  filter: url(#liquid-soft);
 }
 
 .art-canvas .handle {
@@ -123,71 +113,23 @@
   }
 }
 
-.paint-ghost ellipse {
-  animation: paint-blob 0.9s var(--ease-in-out) infinite;
-  transform-origin: center;
-}
-
-@keyframes paint-blob {
-  0%,
-  100% {
-    opacity: 0.85;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.canvas-caption {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0 var(--space-1);
-}
-
-.canvas-caption-title {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: var(--tracking-display);
-  color: var(--ink-soft);
-}
-
-.canvas-caption-size {
-  font-size: 0.75rem;
+.canvas-hint,
+.canvas-format-badge {
+  margin: 0;
+  text-align: center;
   color: var(--charcoal-mid);
 }
 
-@media (max-width: 860px) {
-  .art-canvas-frame.is-portrait .art-canvas-surface {
-    max-height: min(62dvh, 680px);
-  }
-
-  .art-canvas-frame.is-landscape {
-    width: min(100%, 96vw);
-  }
-
-  .art-canvas-frame.is-landscape .art-canvas-surface {
-    max-height: min(48dvh, 420px);
-  }
-
-  .art-canvas-frame.is-square .art-canvas-surface {
-    max-height: min(56dvh, 520px);
-  }
-
-  .canvas-format-badge {
-    font-size: 0.6rem;
-  }
+.canvas-caption {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .art-canvas .select-ring,
-  .paint-ghost ellipse {
+  .art-canvas .select-ring {
     animation: none;
   }
 }
 
-[data-reduced-motion='true'] .art-canvas .select-ring,
-[data-reduced-motion='true'] .paint-ghost ellipse {
+[data-reduced-motion='true'] .art-canvas .select-ring {
   animation: none;
 }

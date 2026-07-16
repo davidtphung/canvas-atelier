@@ -222,7 +222,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   selectedIds: [],
   tool: 'ink',
   activePanel: null,
-  inspectorOpen: true,
+  inspectorOpen: false,
   onboardingOpen: false,
   exportOpen: false,
   toasts: [],

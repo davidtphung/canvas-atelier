@@ -3,13 +3,11 @@ import type { Tool } from '../types';
 import { Icons } from './icons';
 import './Toolbar.css';
 
+/** Essential tools only - advanced ops live in Settings */
 const TOOLS: { id: Tool; label: string; icon: keyof typeof Icons }[] = [
-  { id: 'ink', label: 'Spilled ink', icon: 'ink' },
-  { id: 'select', label: 'Select & throw', icon: 'select' },
-  { id: 'blob', label: 'Paint throw', icon: 'blob' },
-  { id: 'subtract', label: 'Subtract', icon: 'subtract' },
-  { id: 'union', label: 'Union', icon: 'union' },
-  { id: 'hand', label: 'Move ink', icon: 'hand' },
+  { id: 'ink', label: 'Paint', icon: 'ink' },
+  { id: 'select', label: 'Select', icon: 'select' },
+  { id: 'hand', label: 'Move', icon: 'hand' },
 ];
 
 export function Toolbar() {
@@ -19,12 +17,12 @@ export function Toolbar() {
   const activePanel = useStudioStore((s) => s.activePanel);
   const grid = useStudioStore((s) => s.grid);
   const updateGrid = useStudioStore((s) => s.updateGrid);
-  const addBlob = useStudioStore((s) => s.addBlob);
-  const duplicateSelected = useStudioStore((s) => s.duplicateSelected);
   const deleteSelected = useStudioStore((s) => s.deleteSelected);
   const selectedIds = useStudioStore((s) => s.selectedIds);
   const toggleInspector = useStudioStore((s) => s.toggleInspector);
   const inspectorOpen = useStudioStore((s) => s.inspectorOpen);
+  const canvas = useStudioStore((s) => s.canvas);
+  const setAlive = useStudioStore((s) => s.setAlive);
 
   return (
     <nav className="toolbar" aria-label="Editing tools">
@@ -39,14 +37,7 @@ export function Toolbar() {
               aria-label={t.label}
               aria-pressed={tool === t.id}
               title={t.label}
-              onClick={() => {
-                if (t.id === 'blob') {
-                  setTool('blob');
-                  addBlob();
-                } else {
-                  setTool(t.id);
-                }
-              }}
+              onClick={() => setTool(t.id)}
             >
               <Icon />
             </button>
@@ -56,7 +47,7 @@ export function Toolbar() {
 
       <div className="toolbar-divider" aria-hidden="true" />
 
-      <div className="toolbar-group" role="toolbar" aria-label="View and panels">
+      <div className="toolbar-group" role="toolbar" aria-label="View">
         <button
           type="button"
           className="btn btn-icon"
@@ -72,6 +63,7 @@ export function Toolbar() {
           className="btn btn-icon"
           aria-label="Layers"
           aria-pressed={activePanel === 'layers'}
+          title="Layers"
           onClick={() => setPanel('layers')}
         >
           <Icons.layers />
@@ -79,8 +71,9 @@ export function Toolbar() {
         <button
           type="button"
           className="btn btn-icon"
-          aria-label="Upload image"
+          aria-label="Upload"
           aria-pressed={activePanel === 'upload'}
+          title="Upload"
           onClick={() => setPanel('upload')}
         >
           <Icons.upload />
@@ -88,40 +81,33 @@ export function Toolbar() {
         <button
           type="button"
           className="btn btn-icon"
-          aria-label="Timeline"
-          aria-pressed={activePanel === 'timeline'}
-          onClick={() => setPanel('timeline')}
+          aria-label={canvas.alive ? 'Stop motion' : 'Alive motion'}
+          aria-pressed={canvas.alive}
+          title="Alive"
+          onClick={() => setAlive(!canvas.alive)}
         >
-          <Icons.play />
-        </button>
-        <button
-          type="button"
-          className="btn btn-icon desktop-only"
-          aria-label="Toggle inspector"
-          aria-pressed={inspectorOpen}
-          onClick={() => toggleInspector()}
-        >
-          <Icons.chevronRight />
+          <Icons.alive />
         </button>
       </div>
 
-      <div className="toolbar-divider desktop-only" aria-hidden="true" />
+      <div className="toolbar-spacer" aria-hidden="true" />
 
-      <div className="toolbar-group desktop-only" role="toolbar" aria-label="Selection actions">
+      <div className="toolbar-group" role="toolbar" aria-label="More">
         <button
           type="button"
-          className="btn btn-icon"
-          aria-label="Duplicate"
-          disabled={!selectedIds.length}
-          onClick={() => duplicateSelected()}
+          className="btn btn-icon mobile-only"
+          aria-label="Settings"
+          aria-pressed={inspectorOpen}
+          onClick={() => toggleInspector()}
         >
-          <Icons.duplicate />
+          <Icons.settings />
         </button>
         <button
           type="button"
           className="btn btn-icon"
-          aria-label="Delete"
+          aria-label="Delete selection"
           disabled={!selectedIds.length}
+          title="Delete"
           onClick={() => deleteSelected()}
         >
           <Icons.trash />

@@ -5,24 +5,16 @@ import './Onboarding.css';
 
 const STEPS = [
   {
-    title: 'A finished poster, already',
-    body: 'Canvas Atelier opens with a curated modernist composition - cream paper, fine grid, and organic charcoal forms. You begin inside a museum object, not an empty tool.',
+    title: 'Paint the paper',
+    body: 'The canvas fills your screen. Use Paint (I) and drag. Harder press makes larger ink. Empty canvas clears the paper.',
   },
   {
-    title: 'Spilled ink - finger & trackpad',
-    body: 'Open Spilled ink (I). Press and drag like a finger through wet paint: puddles smear with viscous lag, grow under pressure, and drip along long strokes. Hover parts nearby ink; two-finger trackpad scroll shoves the composition. Mouse, trackpad, and touch all work.',
+    title: 'Tools that matter',
+    body: 'Paint, Select, Move on the rail. Grid, Layers, Upload, Alive when you need them. Settings holds size, style, and refine.',
   },
   {
-    title: 'Influence from images',
-    body: 'Upload a photo as reference, texture, or tracing guide. Threshold, blur, and influence controls turn light and shadow into soft vector contours.',
-  },
-  {
-    title: 'Refine in language',
-    body: 'Ask for “more asymmetric,” “increase negative space,” or “calmer and more museum-like.” The studio rebalances composition with intent, not noise.',
-  },
-  {
-    title: 'Export stills and motion',
-    body: 'Save crisp PNG posters, record a short living MP4 (or WebM fallback), and keep full project JSON for later versions. Your work stays printable, shareable, and editable.',
+    title: 'Export when ready',
+    body: 'Save locally, export PNG or H.264 MP4. About and Donate live in the top nav.',
   },
 ];
 

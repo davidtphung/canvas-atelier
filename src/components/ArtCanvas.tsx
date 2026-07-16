@@ -820,21 +820,19 @@ export function ArtCanvas() {
       ? 'Paint with cursor - harder press = larger blob · Shift = heavy · Alt+drag = smear · scroll = shove'
       : 'Throw · select · fling ink - blobs move like liquid paint';
 
+  const artRatio = canvas.width / Math.max(1, canvas.height);
+
   return (
-    <div className={`art-canvas-frame is-${canvas.orientation}`} role="region" aria-label="Art canvas">
-      <p className="canvas-hint micro" id="canvas-hint">
-        {hint}
+    <div
+      className={`art-canvas-frame is-${canvas.orientation}`}
+      role="region"
+      aria-label="Art canvas"
+      style={{ ['--art-ratio' as string]: String(artRatio) }}
+    >
+      <p className="sr-only" id="canvas-hint">
+        {hint}. {orientLabel}, {format.label}, {physical}.
       </p>
-      <p className="canvas-format-badge micro" aria-live="polite">
-        {orientLabel} · {format.label}
-        {format.note ? ` · ${format.note}` : ''} · {physical}
-      </p>
-      <div
-        className="art-canvas-surface"
-        style={{
-          aspectRatio: `${canvas.width} / ${canvas.height}`,
-        }}
-      >
+      <div className="art-canvas-surface">
       <svg
         ref={svgRef}
         className={`art-canvas ${fluid ? 'is-fluid' : ''} ${inkMode ? 'is-ink-mode' : ''}`}

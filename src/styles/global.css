@@ -37,6 +37,14 @@ body {
   min-height: 100dvh;
 }
 
+/* Studio locks to the viewport; About can still scroll */
+.studio-shell {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
 button,
 input,
 select,
@@ -128,7 +136,7 @@ svg {
   border-radius: var(--radius-full);
 }
 
-/* App shell - scrollable editorial page */
+/* App shell */
 .app-shell {
   display: grid;
   grid-template-rows: var(--topbar-height) 1fr;
@@ -144,8 +152,10 @@ svg {
 .app-main {
   display: grid;
   grid-template-columns: var(--rail-width) 1fr;
-  min-height: calc(100dvh - var(--topbar-height));
+  min-height: 0;
+  height: 100%;
   position: relative;
+  overflow: hidden;
 }
 
 .app-main.inspector-open {
@@ -158,11 +168,32 @@ svg {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: var(--space-2);
+  gap: 0;
+  overflow: hidden;
+}
+
+.stage-canvas-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: var(--space-6) var(--space-4) var(--space-12);
-  gap: var(--space-5);
-  overflow: visible;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.stage-timeline-float {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-2);
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 1rem));
+  z-index: 5;
+  pointer-events: auto;
 }
 
 /* Panels */
@@ -488,21 +519,19 @@ svg {
 
 /* Mobile adaptations */
 @media (max-width: 860px) {
-  .app-shell {
-    grid-template-rows: var(--topbar-height) 1fr;
+  .studio-shell {
+    height: 100dvh;
+    max-height: 100dvh;
   }
 
   .app-main,
   .app-main.inspector-open {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr auto;
-    min-height: calc(100dvh - var(--topbar-height));
   }
 
   .app-main > .toolbar {
     order: 2;
-    position: sticky;
-    bottom: 0;
     z-index: var(--z-chrome);
   }
 
@@ -512,7 +541,12 @@ svg {
   }
 
   .app-stage {
-    padding: var(--space-4) var(--space-3) var(--space-6);
+    padding: var(--space-1);
+  }
+
+  .stage-timeline-float {
+    bottom: var(--space-1);
+    width: min(100% - 0.5rem, 100%);
   }
 
   .desktop-only {

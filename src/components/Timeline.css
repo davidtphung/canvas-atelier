@@ -1,15 +1,22 @@
 .timeline-bar {
-  width: min(var(--canvas-max), 100%);
+  width: 100%;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-3) var(--space-4);
-  animation: rise-in var(--duration-base) var(--ease-out);
+  padding: var(--space-2) var(--space-3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .timeline-bar.is-compact {
-  padding: var(--space-2) var(--space-3);
+  padding: 6px 10px;
+}
+
+.timeline-bar .btn-icon {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
 }
 
 .timeline-header {

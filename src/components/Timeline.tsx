@@ -3,18 +3,15 @@ import { useStudioStore } from '../store/useStudioStore';
 import { Icons } from './icons';
 import './Timeline.css';
 
-export function Timeline() {
-  const activePanel = useStudioStore((s) => s.activePanel);
+export function Timeline({ compact = false }: { compact?: boolean }) {
   const animation = useStudioStore((s) => s.animation);
   const updateAnimation = useStudioStore((s) => s.updateAnimation);
   const timelinePlaying = useStudioStore((s) => s.timelinePlaying);
   const setTimelinePlaying = useStudioStore((s) => s.setTimelinePlaying);
   const timelineTime = useStudioStore((s) => s.timelineTime);
   const setTimelineTime = useStudioStore((s) => s.setTimelineTime);
-  const canvas = useStudioStore((s) => s.canvas);
   const setAlive = useStudioStore((s) => s.setAlive);
   const a11y = useStudioStore((s) => s.a11y);
-  const setPanel = useStudioStore((s) => s.setPanel);
 
   useEffect(() => {
     if (!timelinePlaying || a11y.reducedMotion) return;
@@ -31,28 +28,12 @@ export function Timeline() {
     return () => cancelAnimationFrame(raf);
   }, [timelinePlaying, animation.duration, a11y.reducedMotion, setTimelineTime]);
 
-  // Keep alive mode in sync with play
-  useEffect(() => {
-    if (canvas.alive && !a11y.reducedMotion && !timelinePlaying) {
-      setTimelinePlaying(true);
-    }
-  }, [canvas.alive, a11y.reducedMotion, timelinePlaying, setTimelinePlaying]);
-
-  if (activePanel !== 'timeline' && !canvas.alive) return null;
-
-  const visible = activePanel === 'timeline';
-
   return (
-    <div className={`timeline-bar ${visible ? 'is-expanded' : 'is-compact'}`} role="region" aria-label="Animation timeline">
-      {visible && (
-        <div className="timeline-header">
-          <p className="section-label">Timeline</p>
-          <button type="button" className="btn btn-icon" aria-label="Close timeline" onClick={() => setPanel(null)}>
-            <Icons.close />
-          </button>
-        </div>
-      )}
-
+    <div
+      className={`timeline-bar ${compact ? 'is-compact' : 'is-expanded'}`}
+      role="region"
+      aria-label="Animation timeline"
+    >
       <div className="timeline-controls">
         <button
           type="button"
@@ -66,6 +47,7 @@ export function Timeline() {
             const next = !timelinePlaying;
             setTimelinePlaying(next);
             if (next) setAlive(true);
+            else setAlive(false);
           }}
         >
           {timelinePlaying ? <Icons.pause /> : <Icons.play />}
@@ -92,7 +74,7 @@ export function Timeline() {
         </span>
       </div>
 
-      {visible && (
+      {!compact && (
         <div className="timeline-toggles">
           <label className="check">
             <input

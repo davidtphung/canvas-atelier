@@ -9,18 +9,20 @@ import { UploadPanel } from '../components/UploadPanel';
 import { ProjectLibrary } from '../components/ProjectLibrary';
 import { AccessibilityPanel } from '../components/AccessibilityPanel';
 import { Timeline } from '../components/Timeline';
-import { GalleryStrip } from '../components/GalleryStrip';
 import { ExportDialog } from '../components/ExportDialog';
 import { Onboarding } from '../components/Onboarding';
 import { ToastRegion } from '../components/ToastRegion';
-import { HeroIntro } from '../components/HeroIntro';
-import { CanvasFormatBar } from '../components/CanvasFormatBar';
-import { ViewCounter } from '../components/ViewCounter';
 
+/**
+ * Full-viewport studio shell:
+ * top bar + tool rail + canvas fills remaining space.
+ * Settings live in drawers; no page scroll.
+ */
 export function StudioPage() {
   const inspectorOpen = useStudioStore((s) => s.inspectorOpen);
   const a11y = useStudioStore((s) => s.a11y);
   const activePanel = useStudioStore((s) => s.activePanel);
+  const canvasAlive = useStudioStore((s) => s.canvas.alive);
 
   useKeyboardShortcuts();
 
@@ -29,11 +31,14 @@ export function StudioPage() {
     activePanel !== 'layers' &&
     activePanel !== 'upload' &&
     activePanel !== 'library' &&
-    activePanel !== 'a11y';
+    activePanel !== 'a11y' &&
+    activePanel !== 'timeline';
+
+  const showTimeline = canvasAlive || activePanel === 'timeline';
 
   return (
     <div
-      className={`app-shell ${a11y.largeTargets ? 'large-targets' : ''}`}
+      className={`app-shell studio-shell ${a11y.largeTargets ? 'large-targets' : ''}`}
       data-panel={activePanel ?? 'none'}
     >
       <a href="#main-canvas" className="skip-link">
@@ -46,12 +51,14 @@ export function StudioPage() {
         <Toolbar />
 
         <main className="app-stage" id="main-canvas">
-          <HeroIntro />
-          <ArtCanvas />
-          <CanvasFormatBar />
-          <Timeline />
-          <GalleryStrip />
-          <ViewCounter variant="plaque" />
+          <div className="stage-canvas-wrap">
+            <ArtCanvas />
+            {showTimeline && (
+              <div className="stage-timeline-float">
+                <Timeline compact />
+              </div>
+            )}
+          </div>
         </main>
 
         {showInspector && <Inspector />}

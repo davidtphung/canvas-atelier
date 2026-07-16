@@ -91,9 +91,9 @@
   --duration-slow: 420ms;
 
   /* Layout */
-  --rail-width: 56px;
-  --inspector-width: 280px;
-  --topbar-height: 56px;
+  --rail-width: 52px;
+  --inspector-width: 300px;
+  --topbar-height: 48px;
   --gallery-height: 88px;
   --hit-min: 44px;
   --canvas-max: min(92vw, 720px);

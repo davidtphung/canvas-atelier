@@ -161,9 +161,10 @@
     left: 0;
     right: 0;
     width: 100%;
-    max-height: 52dvh;
+    max-height: min(52dvh, 420px);
     border-left: none;
     border-top: 1px solid var(--line);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
   }
 }

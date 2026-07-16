@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useStudioStore } from '../store/useStudioStore';
 import { Icons } from './icons';
-import { ViewCounter } from './ViewCounter';
 import './TopBar.css';
 
 export function TopBar() {
@@ -16,7 +15,6 @@ export function TopBar() {
 
   const projectName = useStudioStore((s) => s.projectName);
   const saveProject = useStudioStore((s) => s.saveProject);
-  const newProject = useStudioStore((s) => s.newProject);
   const clearCanvas = useStudioStore((s) => s.clearCanvas);
   const undo = useStudioStore((s) => s.undo);
   const redo = useStudioStore((s) => s.redo);
@@ -24,10 +22,8 @@ export function TopBar() {
   const future = useStudioStore((s) => s.future);
   const setExportOpen = useStudioStore((s) => s.setExportOpen);
   const setPanel = useStudioStore((s) => s.setPanel);
-  const setOnboarding = useStudioStore((s) => s.setOnboarding);
-  const regenerate = useStudioStore((s) => s.regenerate);
-  const canvas = useStudioStore((s) => s.canvas);
-  const setAlive = useStudioStore((s) => s.setAlive);
+  const toggleInspector = useStudioStore((s) => s.toggleInspector);
+  const inspectorOpen = useStudioStore((s) => s.inspectorOpen);
   const theme = useStudioStore((s) => s.a11y.theme);
   const cycleTheme = useStudioStore((s) => s.cycleTheme);
 
@@ -45,13 +41,9 @@ export function TopBar() {
           </div>
           <div className="brand-text">
             <p className="brand-name">Canvas Atelier</p>
-            <p className="brand-sub">Generative poster studio</p>
-            <p className="brand-credit">Created by NLT143 RESEARCH</p>
+            <p className="brand-sub desktop-only">NLT143 RESEARCH</p>
           </div>
         </Link>
-        <div className="topbar-views desktop-only">
-          <ViewCounter variant="inline" />
-        </div>
       </div>
 
       {!isAbout ? (
@@ -96,7 +88,7 @@ export function TopBar() {
           </Link>
           <Link
             to="/about?tab=donate"
-            className={`btn btn-ghost topbar-nav-link ${isDonate ? 'is-active' : ''}`}
+            className={`btn btn-ghost topbar-nav-link desktop-only ${isDonate ? 'is-active' : ''}`}
             aria-current={isDonate ? 'page' : undefined}
           >
             Donate
@@ -107,8 +99,8 @@ export function TopBar() {
           type="button"
           className="btn btn-icon"
           onClick={() => cycleTheme()}
-          aria-label={`${themeLabel}. Click to switch theme.`}
-          title={`${themeLabel} - click to cycle Light / Dark / System`}
+          aria-label={themeLabel}
+          title={themeLabel}
         >
           <ThemeIcon />
         </button>
@@ -136,85 +128,45 @@ export function TopBar() {
             <button
               type="button"
               className="btn btn-icon"
-              onClick={() => setAlive(!canvas.alive)}
-              aria-label={canvas.alive ? 'Stop living motion' : 'Make it feel alive'}
-              aria-pressed={canvas.alive}
-              title="Make it feel alive"
-            >
-              <Icons.alive />
-            </button>
-            <button
-              type="button"
-              className="btn btn-icon desktop-only"
-              onClick={() => regenerate()}
-              aria-label="Regenerate composition"
-              title="New composition"
-            >
-              <Icons.spark />
-            </button>
-            <button
-              type="button"
-              className="btn btn-icon"
               onClick={() => clearCanvas()}
               aria-label="Empty canvas"
-              title="Clear all forms - start from empty paper"
+              title="Empty canvas"
             >
               <Icons.empty />
             </button>
             <button
               type="button"
               className="btn btn-icon"
-              onClick={() => setPanel('library')}
-              aria-label="Project library"
-            >
-              <Icons.library />
-            </button>
-            <button
-              type="button"
-              className="btn btn-icon"
-              onClick={() => setPanel('a11y')}
-              aria-label="Accessibility settings"
+              onClick={() => toggleInspector()}
+              aria-label="Settings"
+              aria-pressed={inspectorOpen}
+              title="Canvas settings"
             >
               <Icons.settings />
             </button>
             <button
               type="button"
-              className="btn btn-icon"
-              onClick={() => setOnboarding(true)}
-              aria-label="Help and tour"
+              className="btn btn-icon desktop-only"
+              onClick={() => setPanel('library')}
+              aria-label="Library"
+              title="Projects"
             >
-              <Icons.help />
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost desktop-only"
-              onClick={() => newProject({ empty: true })}
-              title="New empty canvas project"
-            >
-              Blank
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost desktop-only"
-              onClick={() => newProject()}
-              title="New project with starter composition"
-            >
-              New
+              <Icons.library />
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => saveProject()}>
               <Icons.save />
-              <span className="desktop-only">Save</span>
+              <span className="label-desktop">Save</span>
             </button>
             <button type="button" className="btn btn-primary" onClick={() => setExportOpen(true)}>
               <Icons.download />
-              Export
+              <span className="label-desktop">Export</span>
             </button>
           </>
         )}
 
         {isAbout && (
           <Link to="/" className="btn btn-primary">
-            Open studio
+            Studio
           </Link>
         )}
       </div>
