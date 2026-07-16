@@ -1,0 +1,78 @@
+.export-modal .export-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.export-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.export-presets {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.export-presets button {
+  flex: 1;
+  text-transform: capitalize;
+}
+
+.export-custom-dims {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.export-dims {
+  margin: 0;
+  color: var(--charcoal-mid);
+}
+
+.export-video-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+}
+
+.export-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.export-progress p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.export-progress-bar {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--line);
+  overflow: hidden;
+}
+
+.export-progress-bar > div {
+  height: 100%;
+  background: var(--ink);
+  transition: width var(--duration-fast) var(--ease-out);
+}
+
+.export-last {
+  margin: 0;
+  color: var(--charcoal-mid);
+}
+
+.export-actions {
+  flex-wrap: wrap;
+}

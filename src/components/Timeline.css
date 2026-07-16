@@ -1,0 +1,60 @@
+.timeline-bar {
+  width: min(var(--canvas-max), 100%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3) var(--space-4);
+  animation: rise-in var(--duration-base) var(--ease-out);
+}
+
+.timeline-bar.is-compact {
+  padding: var(--space-2) var(--space-3);
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.timeline-scrub {
+  flex: 1;
+  display: flex;
+}
+
+.timeline-time {
+  min-width: 2.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.check input {
+  accent-color: var(--ink);
+}

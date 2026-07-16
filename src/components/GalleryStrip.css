@@ -1,0 +1,88 @@
+.gallery-strip {
+  width: min(var(--canvas-max), 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.gallery-label {
+  padding-left: 2px;
+}
+
+.gallery-scroll {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+  scrollbar-width: thin;
+}
+
+.gallery-card {
+  flex: 0 0 auto;
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: border-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+.gallery-card:hover {
+  border-color: var(--line-strong);
+}
+
+.gallery-card.is-active {
+  border-color: var(--ink);
+  background: rgba(26, 26, 26, 0.03);
+}
+
+.gallery-card:active {
+  transform: scale(0.98);
+}
+
+.gallery-thumb {
+  width: 64px;
+  height: 80px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-xs);
+}
+
+.gallery-card-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  color: var(--charcoal-mid);
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-shuffle,
+.gallery-saved {
+  justify-content: center;
+  min-height: 100px;
+  border: 1px dashed var(--line-strong);
+  background: var(--paper-elevated);
+}
+
+.gallery-shuffle-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  margin-top: auto;
+}
+
+.gallery-saved-mark {
+  width: 28px;
+  height: 36px;
+  margin-top: auto;
+  border-radius: 40% 60% 50% 50% / 45% 50% 50% 55%;
+  background: var(--ink);
+  opacity: 0.85;
+}

@@ -1,0 +1,36 @@
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+  box-shadow: var(--shadow-focus);
+}
+
+.app-shell.large-targets .btn-icon {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+}
+
+.app-shell.large-targets .btn {
+  min-height: 44px;
+}
+
+.app-main {
+  position: relative;
+}
+
+/* Ensure side panels sit over stage */
+.app-stage {
+  z-index: var(--z-canvas);
+}

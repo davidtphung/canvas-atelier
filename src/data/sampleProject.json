@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "id": "sample-museum-01",
+    "name": "Museum Quiet No. 1",
+    "createdAt": "2026-07-15T12:00:00.000Z",
+    "updatedAt": "2026-07-15T12:00:00.000Z",
+    "version": 1
+  },
+  "canvas": {
+    "width": 800,
+    "height": 1000,
+    "background": "#F4EFE6",
+    "shapeColor": "#1A1A1A",
+    "density": 1,
+    "softness": 0.55,
+    "contrast": 1,
+    "negativeSpace": 0.45,
+    "style": "calm",
+    "freeform": false,
+    "alive": false,
+    "aliveIntensity": 0.45
+  },
+  "grid": {
+    "visible": true,
+    "spacing": 32,
+    "opacity": 0.1,
+    "snap": true
+  },
+  "shapes": [],
+  "image": null,
+  "animation": {
+    "duration": 4,
+    "fps": 30,
+    "morph": true,
+    "drift": true,
+    "gridShimmer": true
+  },
+  "selectedIds": []
+}
