@@ -2,11 +2,18 @@
   position: relative;
   width: min(var(--canvas-max), 100%);
   aspect-ratio: 4 / 5;
-  max-height: min(72dvh, 820px);
+  max-height: min(78dvh, 880px);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--space-3);
+  gap: var(--space-2);
+}
+
+.canvas-hint {
+  margin: 0;
+  text-align: center;
+  color: var(--charcoal-mid);
+  letter-spacing: 0.06em;
 }
 
 .art-canvas {
@@ -19,9 +26,22 @@
     var(--shadow-md);
   touch-action: none;
   background: var(--paper);
-  cursor: crosshair;
+  cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.art-canvas:active {
+  cursor: grabbing;
+}
+
+.art-canvas.is-fluid .ink-blob path {
+  transition: opacity 120ms var(--ease-out);
+}
+
+.art-canvas.is-fluid .ink-blob.is-flowing path {
+  /* slight viscosity read while moving */
+  filter: url(#liquid-soft);
 }
 
 .art-canvas .handle {
@@ -38,8 +58,33 @@
   stroke: var(--paper);
 }
 
-.art-canvas .shape-selected {
-  /* selection conveyed by handles + dash rect */
+.art-canvas .select-ring {
+  animation: select-pulse 1.8s var(--ease-in-out) infinite;
+}
+
+@keyframes select-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.paint-ghost ellipse {
+  animation: paint-blob 0.9s var(--ease-in-out) infinite;
+  transform-origin: center;
+}
+
+@keyframes paint-blob {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .canvas-caption {
@@ -59,6 +104,18 @@
 
 @media (max-width: 860px) {
   .art-canvas-frame {
-    max-height: min(58dvh, 640px);
+    max-height: min(62dvh, 680px);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .art-canvas .select-ring,
+  .paint-ghost ellipse {
+    animation: none;
+  }
+}
+
+[data-reduced-motion='true'] .art-canvas .select-ring,
+[data-reduced-motion='true'] .paint-ghost ellipse {
+  animation: none;
 }

@@ -4,11 +4,11 @@ import { Icons } from './icons';
 import './Toolbar.css';
 
 const TOOLS: { id: Tool; label: string; icon: keyof typeof Icons }[] = [
-  { id: 'select', label: 'Select', icon: 'select' },
-  { id: 'blob', label: 'Add form', icon: 'blob' },
+  { id: 'select', label: 'Select & throw', icon: 'select' },
+  { id: 'blob', label: 'Paint throw', icon: 'blob' },
   { id: 'subtract', label: 'Subtract', icon: 'subtract' },
   { id: 'union', label: 'Union', icon: 'union' },
-  { id: 'hand', label: 'Pan / move', icon: 'hand' },
+  { id: 'hand', label: 'Move ink', icon: 'hand' },
 ];
 
 export function Toolbar() {

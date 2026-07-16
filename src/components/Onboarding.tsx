@@ -9,8 +9,8 @@ const STEPS = [
     body: 'Canvas Atelier opens with a curated modernist composition — cream paper, fine grid, and organic charcoal forms. You begin inside a museum object, not an empty tool.',
   },
   {
-    title: 'Shape the silhouette',
-    body: 'Drag forms, scale and rotate with handles, add new blobs, or carve cutouts with subtract. Snap to the grid for architecture, or freeform for expression.',
+    title: 'Throw liquid ink',
+    body: 'Select a blob and fling it — it slides, jiggles, and settles like paint. Use Paint throw to sling new ink onto the cream paper. Forms softly collide like liquid pools.',
   },
   {
     title: 'Influence from images',

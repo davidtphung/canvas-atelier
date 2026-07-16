@@ -44,9 +44,9 @@ const defaultCanvas: CanvasSettings = {
   contrast: 1,
   negativeSpace: 0.45,
   style: 'calm',
-  freeform: false,
-  alive: false,
-  aliveIntensity: 0.45,
+  freeform: true,
+  alive: true,
+  aliveIntensity: 0.4,
 };
 
 const defaultGrid: GridSettings = {
