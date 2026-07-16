@@ -645,11 +645,13 @@ export function ArtCanvas() {
   }, [selectedIds, shapes, grid, canvas.freeform, pushHistory, updateShape]);
 
   const spacing = grid.spacing;
+  // 5% darker than base opacity setting
+  const gridAlpha = Math.min(1, grid.opacity * 1.05);
   const shimmer =
     alive && animation.gridShimmer
-      ? 0.08 + Math.sin(phase * Math.PI * 2) * 0.05
+      ? 0.084 + Math.sin(phase * Math.PI * 2) * 0.0525
       : grid.visible
-        ? grid.opacity
+        ? gridAlpha
         : 0;
 
   // tick forces re-render while fluid moves

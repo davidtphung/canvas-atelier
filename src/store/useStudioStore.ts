@@ -73,7 +73,7 @@ const defaultCanvas: CanvasSettings = {
 const defaultGrid: GridSettings = {
   visible: true,
   spacing: 32,
-  opacity: 0.1,
+  opacity: 0.105,
   snap: true,
 };
 

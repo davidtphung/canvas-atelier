@@ -24,7 +24,7 @@ function buildSvgMarkup(
   const driftAmp = animation?.drift && canvas.alive ? canvas.aliveIntensity : 0;
   const phase = time;
 
-  const gridOpacity = grid.visible ? grid.opacity : 0;
+  const gridOpacity = grid.visible ? Math.min(1, grid.opacity * 1.05) : 0;
   const spacing = grid.spacing * ((scaleX + scaleY) / 2);
 
   let gridLines = '';
