@@ -21,6 +21,11 @@
   min-width: 0;
 }
 
+.topbar-views {
+  margin-left: var(--space-2);
+  flex-shrink: 0;
+}
+
 .brand-mark {
   width: 32px;
   height: 32px;

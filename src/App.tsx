@@ -16,6 +16,7 @@ import { Onboarding } from './components/Onboarding';
 import { ToastRegion } from './components/ToastRegion';
 import { HeroIntro } from './components/HeroIntro';
 import { CanvasFormatBar } from './components/CanvasFormatBar';
+import { ViewCounter } from './components/ViewCounter';
 import './App.css';
 
 export default function App() {
@@ -63,6 +64,7 @@ export default function App() {
           <CanvasFormatBar />
           <Timeline />
           <GalleryStrip />
+          <ViewCounter variant="plaque" />
         </main>
 
         {showInspector && <Inspector />}

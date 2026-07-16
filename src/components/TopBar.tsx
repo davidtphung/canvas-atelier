@@ -1,5 +1,6 @@
 import { useStudioStore } from '../store/useStudioStore';
 import { Icons } from './icons';
+import { ViewCounter } from './ViewCounter';
 import './TopBar.css';
 
 export function TopBar() {
@@ -26,6 +27,9 @@ export function TopBar() {
         <div className="brand-text">
           <p className="brand-name">Canvas Atelier</p>
           <p className="brand-sub">Generative poster studio</p>
+        </div>
+        <div className="topbar-views desktop-only">
+          <ViewCounter variant="inline" />
         </div>
       </div>
 
