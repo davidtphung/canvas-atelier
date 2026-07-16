@@ -21,6 +21,45 @@
   min-width: 0;
 }
 
+.brand-home {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+}
+
+.brand-home:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: var(--space-1);
+}
+
+.topbar-nav-link {
+  min-height: 32px;
+  padding: 0 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.topbar-nav-link.is-active {
+  background: var(--hover-fill-strong);
+  color: var(--ink);
+}
+
+.topbar-page-label {
+  margin: 0;
+  text-align: center;
+  color: var(--charcoal-mid);
+}
+
 .topbar-views {
   margin-left: var(--space-2);
   flex-shrink: 0;

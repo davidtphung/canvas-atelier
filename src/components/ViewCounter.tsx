@@ -71,6 +71,14 @@ export function ViewCounter({ variant = 'plaque' }: Props) {
           >
             David T Phung
           </a>
+          {' · '}
+          <a href="./about" className="site-credit-link site-credit-about">
+            About
+          </a>
+          {' · '}
+          <a href="./about?tab=donate" className="site-credit-link">
+            Donate
+          </a>
         </p>
       </div>
     </footer>

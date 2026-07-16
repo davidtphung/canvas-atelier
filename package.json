@@ -7,7 +7,7 @@
     "dev": "VITE_BASE=/ vite",
     "build": "tsc --noEmit && vite build",
     "build:pages": "VITE_BASE=/canvas-atelier/ tsc --noEmit && VITE_BASE=/canvas-atelier/ vite build",
-    "deploy": "npm run build:pages && touch dist/.nojekyll && npx gh-pages -d dist -m 'Deploy Canvas Atelier production build'",
+    "deploy": "npm run build:pages && touch dist/.nojekyll && cp dist/index.html dist/404.html && npx gh-pages -d dist -m 'Deploy Canvas Atelier production build'",
     "assets:brand": "node scripts/render-brand-assets.mjs",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
@@ -19,6 +19,7 @@
     "nanoid": "^5.1.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-router-dom": "^7.18.1",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
