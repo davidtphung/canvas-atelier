@@ -90,8 +90,9 @@ export function AccessibilityPanel() {
       <div className="a11y-keys">
         <p className="section-label">Keyboard</p>
         <ul>
+          <li><kbd>I</kbd> Spilled ink</li>
           <li><kbd>V</kbd> Select</li>
-          <li><kbd>B</kbd> Add form</li>
+          <li><kbd>B</kbd> Paint throw</li>
           <li><kbd>⌘/Ctrl Z</kbd> Undo</li>
           <li><kbd>⌘/Ctrl ⇧ Z</kbd> Redo</li>
           <li><kbd>⌘/Ctrl S</kbd> Save</li>

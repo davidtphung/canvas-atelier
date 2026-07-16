@@ -8,6 +8,7 @@ export type ArtStyle =
 export type Tool =
   | 'select'
   | 'blob'
+  | 'ink'
   | 'pen'
   | 'hand'
   | 'subtract'

@@ -62,6 +62,7 @@ export function useKeyboardShortcuts() {
       }
 
       if (e.key === 'v' || e.key === 'V') store.setTool('select');
+      if (e.key === 'i' || e.key === 'I') store.setTool('ink');
       if (e.key === 'b' || e.key === 'B') store.setTool('blob');
       if (e.key === 'h' || e.key === 'H') store.setTool('hand');
       if (e.key === 'g' || e.key === 'G') {

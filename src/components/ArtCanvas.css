@@ -58,17 +58,32 @@
   display: block;
   border-radius: var(--radius-sm);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
     var(--shadow-md);
-  touch-action: none;
+  touch-action: none; /* trackpad/finger paint — no browser pan/zoom steal */
   background: var(--paper);
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  color: var(--ink);
+  overscroll-behavior: contain;
 }
 
 .art-canvas:active {
   cursor: grabbing;
+}
+
+.art-canvas.is-ink-mode {
+  cursor: none; /* custom finger ring */
+}
+
+.art-canvas.is-ink-mode:active {
+  cursor: none;
+}
+
+.finger-cursor {
+  transition: opacity 80ms var(--ease-out);
+  pointer-events: none;
 }
 
 .art-canvas.is-fluid .ink-blob path {

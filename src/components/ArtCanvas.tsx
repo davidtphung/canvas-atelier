@@ -9,12 +9,18 @@ import {
 import { useStudioStore } from '../store/useStudioStore';
 import { hitTestShape, snapToGrid } from '../lib/geometry';
 import {
+  applyProximityField,
   applyThrow,
+  applyTrackpadPush,
+  beginFingerGrab,
   createBodyFromShape,
+  growPuddle,
   impulseSelect,
   integrateBody,
+  releaseFingerGrab,
   softCollide,
   shapePathWithFluid,
+  updateFingerGrab,
   velocityFromSamples,
   type FluidBody,
   type FluidSample,
@@ -23,7 +29,7 @@ import type { Shape } from '../types';
 import { formatPhysicalLabel, getFormat } from '../lib/canvasFormats';
 import './ArtCanvas.css';
 
-type DragMode = 'move' | 'scale' | 'rotate' | 'paint';
+type DragMode = 'move' | 'scale' | 'rotate' | 'paint' | 'ink-smear' | 'ink-spill';
 
 type DragState = {
   mode: DragMode;
@@ -34,6 +40,8 @@ type DragState = {
   children: Array<{ id: string; x: number; y: number }>;
   samples: FluidSample[];
   pointerId: number;
+  lastSpillDist: number;
+  pointerType: string;
 };
 
 export function ArtCanvas() {
@@ -68,10 +76,17 @@ export function ArtCanvas() {
     ox: number;
     oy: number;
   } | null>(null);
+  const [fingerCursor, setFingerCursor] = useState<{
+    x: number;
+    y: number;
+    down: boolean;
+  } | null>(null);
   const timeRef = useRef(0);
+  const hoverRef = useRef<{ x: number; y: number } | null>(null);
 
   const reduced = a11y.reducedMotion;
   const fluid = !reduced;
+  const inkMode = tool === 'ink';
   const alive = canvas.alive && !reduced;
   const morphAmp = alive && animation.morph ? canvas.aliveIntensity : 0;
   const driftAmp = alive && animation.drift ? canvas.aliveIntensity : 0;
@@ -90,9 +105,13 @@ export function ArtCanvas() {
       if (!existing) {
         map.set(s.id, createBodyFromShape(s));
       } else {
-        // Don't stomp mid-flight unless shape changed externally without physics
-        const dragging = dragRef.current?.shapeId === s.id;
-        if (!dragging && Math.hypot(existing.vx, existing.vy) < 0.05 && existing.jiggle < 0.05) {
+        const dragging =
+          dragRef.current?.shapeId === s.id || existing.fingerTarget != null;
+        if (
+          !dragging &&
+          Math.hypot(existing.vx, existing.vy) < 0.05 &&
+          existing.jiggle < 0.05
+        ) {
           existing.x = s.x;
           existing.y = s.y;
           existing.width = s.width;
@@ -100,13 +119,16 @@ export function ArtCanvas() {
           existing.rotation = s.rotation;
         }
         existing.locked = s.locked;
-        existing.width = s.width;
-        existing.height = s.height;
+        // Don't shrink puddle mid-smear from store overwrites
+        if (!dragging) {
+          existing.width = s.width;
+          existing.height = s.height;
+        }
       }
     }
   }, [shapes]);
 
-  // Physics loop — liquid inertia, soft collisions, jiggle
+  // Physics loop — liquid inertia, finger spring, soft collisions, jiggle
   useEffect(() => {
     if (!fluid) return;
     let raf = 0;
@@ -119,36 +141,42 @@ export function ArtCanvas() {
       const map = bodiesRef.current;
       const list = [...map.values()].filter((b) => !b.locked);
       let active = false;
-      const dragId = dragRef.current?.shapeId;
 
       // Soft liquid collisions
       for (let i = 0; i < list.length; i++) {
         for (let j = i + 1; j < list.length; j++) {
-          if (list[i].id === dragId || list[j].id === dragId) continue;
           softCollide(list[i], list[j]);
         }
       }
 
-      for (const body of map.values()) {
-        if (body.id === dragId && dragRef.current?.mode === 'move') {
-          // Still jiggle while held
-          body.jiggle = Math.max(body.jiggle, 0.25);
-          active = true;
-          continue;
+      // Ambient hover field (cursor / trackpad glide without click)
+      const hover = hoverRef.current;
+      const drag = dragRef.current;
+      if (
+        hover &&
+        !drag &&
+        (tool === 'ink' || tool === 'select' || tool === 'hand') &&
+        !reduced
+      ) {
+        for (const body of list) {
+          applyProximityField(body, hover.x, hover.y, tool === 'ink' ? 1.15 : 0.55);
         }
+      }
+
+      for (const body of map.values()) {
         if (integrateBody(body, canvas.width, canvas.height, dt)) {
           active = true;
         }
       }
 
-      if (active || dragRef.current || paintGhost) {
+      if (active || drag || paintGhost || fingerCursor) {
         setTick((t) => (t + 1) % 1_000_000);
       }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [fluid, canvas.width, canvas.height, paintGhost]);
+  }, [fluid, canvas.width, canvas.height, paintGhost, fingerCursor, tool, reduced]);
 
   // Sync settled fluid positions back into project state
   const scheduleSync = useCallback(() => {
@@ -212,10 +240,55 @@ export function ArtCanvas() {
     };
   };
 
+  const hitShapeAt = (x: number, y: number): Shape | null => {
+    const ordered = [...shapes].reverse();
+    for (const s of ordered) {
+      if (s.hidden || s.locked || s.kind === 'cutout') continue;
+      const p = posOf(s);
+      if (hitTestShape({ ...s, x: p.x, y: p.y }, x, y, phase)) return s;
+    }
+    return null;
+  };
+
+  const ensureBody = (shape: Shape): FluidBody => {
+    let body = bodiesRef.current.get(shape.id);
+    if (!body) {
+      body = createBodyFromShape(shape);
+      bodiesRef.current.set(shape.id, body);
+    }
+    return body;
+  };
+
+  const spillInkAt = (x: number, y: number, sizeScale = 1) => {
+    pushHistory();
+    addBlob(x, y);
+    const state = useStudioStore.getState();
+    const id = state.selectedIds[0];
+    const sh = state.shapes.find((s) => s.id === id);
+    if (!sh) return null;
+    const body = ensureBody(sh);
+    // Smaller, softer puddles for spilled ink
+    body.width = Math.max(48, sh.width * 0.75 * sizeScale);
+    body.height = Math.max(40, sh.height * 0.7 * sizeScale);
+    body.x = x - body.width / 2;
+    body.y = y - body.height / 2;
+    body.jiggle = 0.85;
+    updateShape(id, {
+      x: body.x,
+      y: body.y,
+      width: body.width,
+      height: body.height,
+    });
+    return { id, body };
+  };
+
   const onPointerDownBg = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
+    e.preventDefault();
     const { x, y } = clientToSvg(e.clientX, e.clientY);
     const sample: FluidSample = { x, y, t: performance.now() };
+    setFingerCursor({ x, y, down: true });
+    hoverRef.current = { x, y };
 
     // Paint / throw new ink: drag then release to fling a blob
     if (tool === 'blob') {
@@ -229,23 +302,63 @@ export function ArtCanvas() {
         children: [],
         samples: [sample],
         pointerId: e.pointerId,
+        lastSpillDist: 0,
+        pointerType: e.pointerType,
       };
       setPaintGhost({ x, y, ox: x, oy: y });
-      (e.target as Element).setPointerCapture?.(e.pointerId);
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
       return;
     }
 
-    const ordered = [...shapes].reverse();
-    let hit: Shape | null = null;
-    for (const s of ordered) {
-      if (s.hidden || s.locked || s.kind === 'cutout') continue;
-      const p = posOf(s);
-      const testShape = { ...s, x: p.x, y: p.y };
-      if (hitTestShape(testShape, x, y, phase)) {
-        hit = s;
-        break;
+    // Spilled ink mode — finger / trackpad / mouse smear
+    if (tool === 'ink') {
+      const hit = hitShapeAt(x, y);
+      historyPushed.current = false;
+
+      if (hit) {
+        select([hit.id], e.shiftKey || e.metaKey);
+        const body = ensureBody({ ...hit, ...posOf(hit) });
+        body.x = posOf(hit).x;
+        body.y = posOf(hit).y;
+        beginFingerGrab(body, x, y);
+        dragRef.current = {
+          mode: 'ink-smear',
+          shapeId: hit.id,
+          startX: x,
+          startY: y,
+          origin: { ...hit, x: body.x, y: body.y, rotation: body.rotation },
+          children: shapes
+            .filter((s) => s.parentId === hit.id)
+            .map((s) => ({ id: s.id, x: s.x, y: s.y })),
+          samples: [sample],
+          pointerId: e.pointerId,
+          lastSpillDist: 0,
+          pointerType: e.pointerType,
+        };
+      } else {
+        // Spill a fresh puddle under the finger
+        const spilled = spillInkAt(x, y, e.pressure > 0 ? 0.7 + e.pressure * 0.6 : 1);
+        if (spilled) {
+          beginFingerGrab(spilled.body, x, y);
+          dragRef.current = {
+            mode: 'ink-spill',
+            shapeId: spilled.id,
+            startX: x,
+            startY: y,
+            origin: null,
+            children: [],
+            samples: [sample],
+            pointerId: e.pointerId,
+            lastSpillDist: 0,
+            pointerType: e.pointerType,
+          };
+        }
       }
+      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+      return;
     }
+
+    const hit = hitShapeAt(x, y);
 
     if (hit) {
       const additive = e.shiftKey || e.metaKey;
@@ -259,10 +372,7 @@ export function ArtCanvas() {
         historyPushed.current = false;
         const p = posOf(hit);
         if (body) {
-          body.vx = 0;
-          body.vy = 0;
-          body.x = p.x;
-          body.y = p.y;
+          beginFingerGrab(body, x, y);
         }
         dragRef.current = {
           mode: 'move',
@@ -271,12 +381,14 @@ export function ArtCanvas() {
           startY: y,
           origin: { ...hit, x: p.x, y: p.y, rotation: p.rotation },
           children: shapes
-            .filter((s) => s.parentId === hit!.id)
+            .filter((s) => s.parentId === hit.id)
             .map((s) => ({ id: s.id, x: s.x, y: s.y })),
           samples: [sample],
           pointerId: e.pointerId,
+          lastSpillDist: 0,
+          pointerType: e.pointerType,
         };
-        (e.target as Element).setPointerCapture?.(e.pointerId);
+        (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
       }
     } else {
       clearSelection();
@@ -284,14 +396,53 @@ export function ArtCanvas() {
   };
 
   const onPointerMove = (e: ReactPointerEvent) => {
+    const { x, y } = clientToSvg(e.clientX, e.clientY);
+    hoverRef.current = { x, y };
+    setFingerCursor((prev) =>
+      prev || inkMode || tool === 'select' || tool === 'hand'
+        ? { x, y, down: Boolean(dragRef.current) || e.buttons === 1 }
+        : null,
+    );
+
     const drag = dragRef.current;
     if (!drag) return;
-    const { x, y } = clientToSvg(e.clientX, e.clientY);
+
     drag.samples.push({ x, y, t: performance.now() });
-    if (drag.samples.length > 12) drag.samples.shift();
+    if (drag.samples.length > 14) drag.samples.shift();
 
     if (drag.mode === 'paint') {
       setPaintGhost({ x, y, ox: drag.startX, oy: drag.startY });
+      return;
+    }
+
+    // Spilled ink: viscous finger follow + optional drip trail
+    if (drag.mode === 'ink-smear' || drag.mode === 'ink-spill') {
+      if (!historyPushed.current && drag.mode === 'ink-smear') {
+        pushHistory();
+        historyPushed.current = true;
+      }
+      if (drag.shapeId) {
+        const body = bodiesRef.current.get(drag.shapeId);
+        if (body) {
+          updateFingerGrab(body, x, y);
+          const dist = Math.hypot(x - drag.startX, y - drag.startY);
+          // Pressure / speed grows the puddle while smearing
+          const pressure = e.pressure > 0 ? e.pressure : 0.45;
+          const v = velocityFromSamples(drag.samples);
+          const spd = Math.hypot(v.vx, v.vy);
+          growPuddle(body, (0.15 + pressure * 0.4 + spd * 0.02) * (e.pointerType === 'touch' ? 1.2 : 1));
+
+          // Drip satellite puddles along a long smear
+          if (dist - drag.lastSpillDist > 90 && spd > 1.5) {
+            drag.lastSpillDist = dist;
+            const drip = spillInkAt(x, y, 0.45 + pressure * 0.3);
+            if (drip) {
+              applyThrow(drip.body, v.vx * 0.4, v.vy * 0.4);
+            }
+          }
+        }
+      }
+      setTick((t) => t + 1);
       return;
     }
 
@@ -306,29 +457,17 @@ export function ArtCanvas() {
     const dy = y - drag.startY;
 
     if (drag.mode === 'move') {
-      let nx = o.x + dx;
-      let ny = o.y + dy;
-      // Fluid freeform by default; snap only when not freeform + snap on
-      if (grid.snap && !canvas.freeform && !fluid) {
-        nx = snapToGrid(nx, grid.spacing);
-        ny = snapToGrid(ny, grid.spacing);
-      }
       const body = bodiesRef.current.get(drag.shapeId);
-      if (body) {
-        // Follow finger with soft lag feel via direct set + trail velocity
-        body.x = nx;
-        body.y = ny;
-        const v = velocityFromSamples(drag.samples);
-        body.vx = v.vx * 0.35;
-        body.vy = v.vy * 0.35;
-        body.jiggle = Math.max(body.jiggle, 0.35 + Math.hypot(v.vx, v.vy) * 0.02);
+      if (body && fluid) {
+        updateFingerGrab(body, x, y);
       } else {
+        let nx = o.x + dx;
+        let ny = o.y + dy;
+        if (grid.snap && !canvas.freeform) {
+          nx = snapToGrid(nx, grid.spacing);
+          ny = snapToGrid(ny, grid.spacing);
+        }
         updateShape(drag.shapeId, { x: nx, y: ny });
-      }
-      const pdx = nx - o.x;
-      const pdy = ny - o.y;
-      for (const child of drag.children) {
-        updateShape(child.id, { x: child.x + pdx, y: child.y + pdy });
       }
     } else if (drag.mode === 'scale') {
       const nw = Math.max(32, o.width + dx);
@@ -351,8 +490,15 @@ export function ArtCanvas() {
     setTick((t) => t + 1);
   };
 
-  const onPointerUp = () => {
+  const onPointerUp = (e?: ReactPointerEvent) => {
     const drag = dragRef.current;
+    if (e) {
+      const { x, y } = clientToSvg(e.clientX, e.clientY);
+      setFingerCursor({ x, y, down: false });
+    } else {
+      setFingerCursor((c) => (c ? { ...c, down: false } : null));
+    }
+
     if (!drag) return;
 
     if (drag.mode === 'paint') {
@@ -360,28 +506,17 @@ export function ArtCanvas() {
       const speed = Math.hypot(v.vx, v.vy);
       const dropX = paintGhost?.x ?? drag.startX;
       const dropY = paintGhost?.y ?? drag.startY;
-      // Sling from origin: if dragged, place at end and throw along flick
       pushHistory();
       addBlob(dropX, dropY);
-      // Newly added shape is selected last
       const state = useStudioStore.getState();
       const id = state.selectedIds[0];
       if (id && fluid) {
-        let body = bodiesRef.current.get(id);
-        if (!body) {
-          const sh = state.shapes.find((s) => s.id === id);
-          if (sh) {
-            body = createBodyFromShape(sh);
-            bodiesRef.current.set(id, body);
-          }
-        }
-        if (body) {
-          // Throw in flick direction; small drag still “drops” paint softly
+        const sh = state.shapes.find((s) => s.id === id);
+        if (sh) {
+          const body = ensureBody(sh);
           const throwScale = speed > 1.2 ? 1 : 0.35;
           applyThrow(body, v.vx * throwScale, v.vy * throwScale);
-          if (speed < 0.8) {
-            body.jiggle = Math.max(body.jiggle, 0.65);
-          }
+          if (speed < 0.8) body.jiggle = Math.max(body.jiggle, 0.65);
         }
       }
       setPaintGhost(null);
@@ -391,11 +526,22 @@ export function ArtCanvas() {
       return;
     }
 
-    if (drag.mode === 'move' && drag.shapeId && fluid) {
+    if (
+      (drag.mode === 'move' || drag.mode === 'ink-smear' || drag.mode === 'ink-spill') &&
+      drag.shapeId &&
+      fluid
+    ) {
       const body = bodiesRef.current.get(drag.shapeId);
       if (body) {
-        const v = velocityFromSamples(drag.samples);
-        applyThrow(body, v.vx, v.vy);
+        releaseFingerGrab(body, drag.samples);
+        // Persist size if puddle grew
+        updateShape(drag.shapeId, {
+          x: body.x,
+          y: body.y,
+          width: body.width,
+          height: body.height,
+          rotation: body.rotation,
+        });
       }
       scheduleSync();
     } else {
@@ -408,6 +554,30 @@ export function ArtCanvas() {
     dragRef.current = null;
     historyPushed.current = false;
     setTick((t) => t + 1);
+  };
+
+  const onPointerLeave = () => {
+    if (!dragRef.current) {
+      hoverRef.current = null;
+      setFingerCursor(null);
+    }
+  };
+
+  /** Trackpad two-finger scroll / mouse wheel — push ink like a finger swipe */
+  const onWheel = (e: React.WheelEvent) => {
+    if (reduced || (!inkMode && tool !== 'select' && tool !== 'hand')) return;
+    // Don't steal page scroll when user clearly scrolling the document
+    // Prefer canvas ink push when over the art surface
+    e.preventDefault();
+    const { x, y } = clientToSvg(e.clientX, e.clientY);
+    hoverRef.current = { x, y };
+    const dx = e.deltaX;
+    const dy = e.deltaY;
+    for (const body of bodiesRef.current.values()) {
+      applyTrackpadPush(body, dx, dy, x, y);
+    }
+    setTick((t) => t + 1);
+    scheduleSync();
   };
 
   const startHandle = (
@@ -431,6 +601,8 @@ export function ArtCanvas() {
       children: [],
       samples: [{ x, y, t: performance.now() }],
       pointerId: e.pointerId,
+      lastSpillDist: 0,
+      pointerType: e.pointerType,
     };
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
   };
@@ -492,12 +664,16 @@ export function ArtCanvas() {
         ? 'Landscape'
         : 'Square';
 
+  const hint = reduced
+    ? 'Select and edit forms on the canvas'
+    : inkMode
+      ? 'Spilled ink — drag with finger, mouse, or trackpad · scroll to shove · hover parts the puddle'
+      : 'Throw · select · fling ink — blobs move like liquid paint';
+
   return (
     <div className={`art-canvas-frame is-${canvas.orientation}`} role="region" aria-label="Art canvas">
       <p className="canvas-hint micro" id="canvas-hint">
-        {fluid
-          ? 'Throw · select · fling ink — blobs move like liquid paint'
-          : 'Select and edit forms on the canvas'}
+        {hint}
       </p>
       <p className="canvas-format-badge micro" aria-live="polite">
         {orientLabel} · {format.label}
@@ -511,7 +687,7 @@ export function ArtCanvas() {
       >
       <svg
         ref={svgRef}
-        className={`art-canvas ${fluid ? 'is-fluid' : ''}`}
+        className={`art-canvas ${fluid ? 'is-fluid' : ''} ${inkMode ? 'is-ink-mode' : ''}`}
         viewBox={`0 0 ${canvas.width} ${canvas.height}`}
         preserveAspectRatio="xMidYMid meet"
         role="img"
@@ -519,8 +695,15 @@ export function ArtCanvas() {
         aria-describedby="canvas-hint"
         onPointerDown={onPointerDownBg}
         onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerUp={(e) => onPointerUp(e)}
+        onPointerCancel={(e) => onPointerUp(e)}
+        onPointerLeave={onPointerLeave}
+        onPointerEnter={(e) => {
+          const { x, y } = clientToSvg(e.clientX, e.clientY);
+          hoverRef.current = { x, y };
+          setFingerCursor({ x, y, down: false });
+        }}
+        onWheel={onWheel}
       >
         <defs>
           <filter id="liquid-soft" x="-8%" y="-8%" width="116%" height="116%">
@@ -685,7 +868,8 @@ export function ArtCanvas() {
               y1={paintGhost.oy}
               x2={paintGhost.x}
               y2={paintGhost.y}
-              stroke="rgba(26,26,26,0.28)"
+              stroke="currentColor"
+              opacity={0.28}
               strokeWidth="1.5"
               strokeDasharray="4 5"
             />
@@ -694,16 +878,41 @@ export function ArtCanvas() {
               cy={paintGhost.oy}
               r={6}
               fill="none"
-              stroke="rgba(26,26,26,0.25)"
+              stroke="currentColor"
+              opacity={0.25}
             />
             <ellipse
               cx={paintGhost.x}
               cy={paintGhost.y}
               rx={28}
               ry={22}
-              fill="rgba(26,26,26,0.12)"
-              stroke="rgba(26,26,26,0.35)"
+              fill="currentColor"
+              opacity={0.12}
+              stroke="currentColor"
+              strokeOpacity={0.35}
               strokeWidth="1"
+            />
+          </g>
+        )}
+
+        {/* Finger / trackpad cursor for spilled ink */}
+        {fingerCursor && fluid && (inkMode || tool === 'select' || tool === 'hand') && (
+          <g className="finger-cursor" pointerEvents="none" opacity={fingerCursor.down ? 0.55 : 0.28}>
+            <circle
+              cx={fingerCursor.x}
+              cy={fingerCursor.y}
+              r={fingerCursor.down ? 22 : 16}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={fingerCursor.down ? 1.75 : 1.25}
+              strokeDasharray={fingerCursor.down ? 'none' : '3 4'}
+            />
+            <circle
+              cx={fingerCursor.x}
+              cy={fingerCursor.y}
+              r={3.5}
+              fill="currentColor"
+              opacity={0.5}
             />
           </g>
         )}

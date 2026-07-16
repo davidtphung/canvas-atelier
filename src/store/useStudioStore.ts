@@ -217,7 +217,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   animation: defaultAnimation,
   a11y: defaultA11y,
   selectedIds: [],
-  tool: 'select',
+  tool: 'ink',
   activePanel: null,
   inspectorOpen: true,
   onboardingOpen: false,

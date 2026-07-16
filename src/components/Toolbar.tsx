@@ -4,6 +4,7 @@ import { Icons } from './icons';
 import './Toolbar.css';
 
 const TOOLS: { id: Tool; label: string; icon: keyof typeof Icons }[] = [
+  { id: 'ink', label: 'Spilled ink', icon: 'ink' },
   { id: 'select', label: 'Select & throw', icon: 'select' },
   { id: 'blob', label: 'Paint throw', icon: 'blob' },
   { id: 'subtract', label: 'Subtract', icon: 'subtract' },
@@ -39,8 +40,12 @@ export function Toolbar() {
               aria-pressed={tool === t.id}
               title={t.label}
               onClick={() => {
-                if (t.id === 'blob') addBlob();
-                else setTool(t.id);
+                if (t.id === 'blob') {
+                  setTool('blob');
+                  addBlob();
+                } else {
+                  setTool(t.id);
+                }
               }}
             >
               <Icon />
