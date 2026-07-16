@@ -66,7 +66,7 @@ const defaultCanvas: CanvasSettings = {
   negativeSpace: 0.45,
   style: 'calm',
   freeform: true,
-  alive: true,
+  alive: false,
   aliveIntensity: 0.4,
 };
 
@@ -188,6 +188,8 @@ export type StudioState = {
   applyNlRefine: (prompt?: string) => void;
   setRefinePrompt: (v: string) => void;
   setAlive: (alive: boolean) => void;
+  /** Atomic play/pause - keeps alive + timelinePlaying in sync */
+  togglePlayPause: () => void;
   setTheme: (theme: ThemePreference) => void;
   cycleTheme: () => void;
   syncSystemTheme: () => void;
@@ -670,14 +672,42 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   setRefinePrompt: (v) => set({ refinePrompt: v }),
 
   setAlive: (alive) => {
-    set((s) => ({
-      canvas: { ...s.canvas, alive },
-      timelinePlaying: alive && !s.a11y.reducedMotion,
-    }));
+    set((s) => {
+      if (s.a11y.reducedMotion && alive) {
+        return {
+          canvas: { ...s.canvas, alive: false },
+          timelinePlaying: false,
+        };
+      }
+      return {
+        canvas: { ...s.canvas, alive },
+        // Turning alive on starts playback; turning off always stops it
+        timelinePlaying: Boolean(alive),
+      };
+    });
     get().scheduleAutosave();
   },
 
-  setTimelinePlaying: (v) => set({ timelinePlaying: v }),
+  togglePlayPause: () => {
+    const s = get();
+    if (s.a11y.reducedMotion) {
+      get().toast('Motion reduced in accessibility settings');
+      return;
+    }
+    const next = !s.timelinePlaying;
+    set({
+      timelinePlaying: next,
+      canvas: { ...s.canvas, alive: next },
+    });
+    get().scheduleAutosave();
+  },
+
+  setTimelinePlaying: (v) =>
+    set((s) => ({
+      timelinePlaying: v && !s.a11y.reducedMotion,
+      // Stopping playback also turns off alive so motion fully freezes
+      canvas: v ? { ...s.canvas, alive: true } : { ...s.canvas, alive: false },
+    })),
   setTimelineTime: (t) => set({ timelineTime: t }),
 
   getDocument: () => {

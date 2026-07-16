@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStudioStore } from '../store/useStudioStore';
 import { Icons } from './icons';
 import './Timeline.css';
@@ -7,26 +7,47 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
   const animation = useStudioStore((s) => s.animation);
   const updateAnimation = useStudioStore((s) => s.updateAnimation);
   const timelinePlaying = useStudioStore((s) => s.timelinePlaying);
-  const setTimelinePlaying = useStudioStore((s) => s.setTimelinePlaying);
   const timelineTime = useStudioStore((s) => s.timelineTime);
   const setTimelineTime = useStudioStore((s) => s.setTimelineTime);
-  const setAlive = useStudioStore((s) => s.setAlive);
+  const setTimelinePlaying = useStudioStore((s) => s.setTimelinePlaying);
+  const togglePlayPause = useStudioStore((s) => s.togglePlayPause);
   const a11y = useStudioStore((s) => s.a11y);
+  const rafRef = useRef(0);
 
+  // Advance time only while playing; cancel cleanly on pause
   useEffect(() => {
-    if (!timelinePlaying || a11y.reducedMotion) return;
-    let raf = 0;
+    if (!timelinePlaying || a11y.reducedMotion) {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+      return;
+    }
+
     let last = performance.now();
     const tick = (now: number) => {
+      // Re-check store each frame so pause is immediate
+      const state = useStudioStore.getState();
+      if (!state.timelinePlaying || state.a11y.reducedMotion) {
+        rafRef.current = 0;
+        return;
+      }
       const dt = (now - last) / 1000;
       last = now;
-      const next = (useStudioStore.getState().timelineTime + dt / animation.duration) % 1;
+      const duration = Math.max(0.1, state.animation.duration);
+      const next = (state.timelineTime + dt / duration) % 1;
       setTimelineTime(next);
-      raf = requestAnimationFrame(tick);
+      rafRef.current = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [timelinePlaying, animation.duration, a11y.reducedMotion, setTimelineTime]);
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+    };
+  }, [timelinePlaying, a11y.reducedMotion, setTimelineTime]);
 
   return (
     <div
@@ -39,16 +60,8 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
           type="button"
           className="btn btn-icon"
           aria-label={timelinePlaying ? 'Pause' : 'Play'}
-          onClick={() => {
-            if (a11y.reducedMotion) {
-              useStudioStore.getState().toast('Motion reduced in accessibility settings');
-              return;
-            }
-            const next = !timelinePlaying;
-            setTimelinePlaying(next);
-            if (next) setAlive(true);
-            else setAlive(false);
-          }}
+          aria-pressed={timelinePlaying}
+          onClick={() => togglePlayPause()}
         >
           {timelinePlaying ? <Icons.pause /> : <Icons.play />}
         </button>
@@ -63,6 +76,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
             step={0.001}
             value={timelineTime}
             onChange={(e) => {
+              // Scrub freezes playback
               setTimelinePlaying(false);
               setTimelineTime(Number(e.target.value));
             }}

@@ -22,7 +22,6 @@ export function StudioPage() {
   const inspectorOpen = useStudioStore((s) => s.inspectorOpen);
   const a11y = useStudioStore((s) => s.a11y);
   const activePanel = useStudioStore((s) => s.activePanel);
-  const canvasAlive = useStudioStore((s) => s.canvas.alive);
 
   useKeyboardShortcuts();
 
@@ -33,8 +32,6 @@ export function StudioPage() {
     activePanel !== 'library' &&
     activePanel !== 'a11y' &&
     activePanel !== 'timeline';
-
-  const showTimeline = canvasAlive || activePanel === 'timeline';
 
   return (
     <div
@@ -53,11 +50,9 @@ export function StudioPage() {
         <main className="app-stage" id="main-canvas">
           <div className="stage-canvas-wrap">
             <ArtCanvas />
-            {showTimeline && (
-              <div className="stage-timeline-float">
-                <Timeline compact />
-              </div>
-            )}
+            <div className="stage-timeline-float">
+              <Timeline compact />
+            </div>
           </div>
         </main>
 

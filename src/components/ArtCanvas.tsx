@@ -105,10 +105,12 @@ export function ArtCanvas() {
   const reduced = a11y.reducedMotion;
   const fluid = !reduced;
   const inkMode = tool === 'ink';
-  const alive = canvas.alive && !reduced;
-  const morphAmp = alive && animation.morph ? canvas.aliveIntensity : 0;
-  const driftAmp = alive && animation.drift ? canvas.aliveIntensity : 0;
-  const phase = timelinePlaying || alive ? timelineTime : 0;
+  // Motion only while transport is playing (play/pause is source of truth)
+  const motionOn = timelinePlaying && !reduced;
+  const morphAmp = motionOn && animation.morph ? canvas.aliveIntensity : 0;
+  const driftAmp = motionOn && animation.drift ? canvas.aliveIntensity : 0;
+  // Freeze at current time when paused (scrubber still works)
+  const phase = timelineTime;
 
   // Keep fluid bodies in sync with shape list
   useEffect(() => {
@@ -796,7 +798,7 @@ export function ArtCanvas() {
   // 10% darker than base opacity; slightly stronger for definition
   const gridAlpha = Math.min(1, grid.opacity * 1.1);
   const shimmer =
-    alive && animation.gridShimmer
+    motionOn && animation.gridShimmer
       ? 0.1 + Math.sin(phase * Math.PI * 2) * 0.045
       : grid.visible
         ? gridAlpha
