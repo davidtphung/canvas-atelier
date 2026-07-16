@@ -20,7 +20,7 @@
   --charcoal-mid: #3a3a3a;
   --line: rgba(26, 26, 26, 0.12);
   --line-strong: rgba(26, 26, 26, 0.22);
-  --grid-line: rgba(26, 26, 26, 0.0945);
+  --grid-line: rgba(26, 26, 26, 0.132);
   --hover-fill: rgba(26, 26, 26, 0.05);
   --hover-fill-strong: rgba(26, 26, 26, 0.08);
   --focus: #2a5a8a;
@@ -125,7 +125,7 @@
   --charcoal-mid: #a89f90;
   --line: rgba(237, 230, 217, 0.12);
   --line-strong: rgba(237, 230, 217, 0.22);
-  --grid-line: rgba(237, 230, 217, 0.105);
+  --grid-line: rgba(237, 230, 217, 0.145);
   --hover-fill: rgba(237, 230, 217, 0.06);
   --hover-fill-strong: rgba(237, 230, 217, 0.1);
   --focus: #7eb0e0;

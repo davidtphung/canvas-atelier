@@ -33,20 +33,21 @@ function buildSvgMarkup(
   const driftAmp = animation?.drift && canvas.alive ? canvas.aliveIntensity : 0;
   const phase = time;
 
-  const gridOpacity = grid.visible ? Math.min(1, grid.opacity * 1.05) : 0;
+  const gridOpacity = grid.visible ? Math.min(1, grid.opacity * 1.1) : 0;
   const spacing = grid.spacing * ((scaleX + scaleY) / 2);
+  const gridStroke = Math.max(1.25, 1.35 * ((scaleX + scaleY) / 2));
 
   let gridLines = '';
   if (gridOpacity > 0) {
     const lines: string[] = [];
     for (let x = 0; x <= width; x += spacing) {
       lines.push(
-        `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="rgba(26,26,26,${gridOpacity})" stroke-width="1"/>`,
+        `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="rgba(26,26,26,${gridOpacity})" stroke-width="${gridStroke}" shape-rendering="crispEdges"/>`,
       );
     }
     for (let y = 0; y <= height; y += spacing) {
       lines.push(
-        `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="rgba(26,26,26,${gridOpacity})" stroke-width="1"/>`,
+        `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="rgba(26,26,26,${gridOpacity})" stroke-width="${gridStroke}" shape-rendering="crispEdges"/>`,
       );
     }
     const shimmer =

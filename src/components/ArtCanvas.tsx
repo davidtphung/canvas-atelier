@@ -793,11 +793,11 @@ export function ArtCanvas() {
   }, [selectedIds, shapes, grid, canvas.freeform, pushHistory, updateShape]);
 
   const spacing = grid.spacing;
-  // 5% darker than base opacity setting
-  const gridAlpha = Math.min(1, grid.opacity * 1.05);
+  // 10% darker than base opacity; slightly stronger for definition
+  const gridAlpha = Math.min(1, grid.opacity * 1.1);
   const shimmer =
     alive && animation.gridShimmer
-      ? 0.084 + Math.sin(phase * Math.PI * 2) * 0.0525
+      ? 0.1 + Math.sin(phase * Math.PI * 2) * 0.045
       : grid.visible
         ? gridAlpha
         : 0;
@@ -874,7 +874,8 @@ export function ArtCanvas() {
               d={`M ${spacing} 0 L 0 0 0 ${spacing}`}
               fill="none"
               stroke={`rgba(26,26,26,${shimmer})`}
-              strokeWidth="1"
+              strokeWidth="1.35"
+              shapeRendering="crispEdges"
             />
           </pattern>
           {roots.list.map((s) => {
