@@ -61,6 +61,17 @@ export function ViewCounter({ variant = 'plaque' }: Props) {
               ? 'This browser'
               : 'All visitors'}
         </span>
+        <p className="site-credit">
+          Built by{' '}
+          <a
+            href="https://x.com/davidtphung"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="site-credit-link"
+          >
+            David T Phung
+          </a>
+        </p>
       </div>
     </footer>
   );

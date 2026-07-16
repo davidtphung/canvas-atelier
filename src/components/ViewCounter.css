@@ -68,6 +68,32 @@
   font-weight: 500;
 }
 
+.site-credit {
+  margin: var(--space-3) 0 0;
+  font-size: 0.8125rem;
+  color: var(--charcoal-mid);
+  letter-spacing: 0.01em;
+}
+
+.site-credit-link {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.28);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.site-credit-link:hover {
+  border-bottom-color: var(--ink);
+}
+
+.site-credit-link:focus-visible {
+  border-radius: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
 @media (max-width: 860px) {
   .view-counter--inline .micro {
     display: none;
