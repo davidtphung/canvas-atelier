@@ -34,6 +34,7 @@ export function TopBar() {
         <div className="brand-text">
           <p className="brand-name">Canvas Atelier</p>
           <p className="brand-sub">Generative poster studio</p>
+          <p className="brand-credit">Created by NLT143 RESEARCH</p>
         </div>
         <div className="topbar-views desktop-only">
           <ViewCounter variant="inline" />
