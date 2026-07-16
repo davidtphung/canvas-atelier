@@ -120,8 +120,8 @@ export function ExportDialog() {
       setLastMeta(meta);
       toast(
         result.format === 'mp4'
-          ? 'MP4 exported'
-          : 'WebM exported (MP4 not supported in this browser)',
+          ? 'MP4 exported (H.264 · plays in QuickTime)'
+          : 'WebM exported — H.264 unavailable in this browser',
       );
     } catch (err) {
       console.error(err);
@@ -313,7 +313,7 @@ export function ExportDialog() {
             Project JSON
           </button>
           <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => void onVideo()}>
-            MP4 / WebM
+            Export MP4
           </button>
           <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void onPng()}>
             <Icons.download />
