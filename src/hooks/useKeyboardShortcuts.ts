@@ -65,6 +65,9 @@ export function useKeyboardShortcuts() {
       if (e.key === 'i' || e.key === 'I') store.setTool('ink');
       if (e.key === 'b' || e.key === 'B') store.setTool('blob');
       if (e.key === 'h' || e.key === 'H') store.setTool('hand');
+      if ((e.key === 'n' || e.key === 'N') && !mod) {
+        store.clearCanvas();
+      }
       if (e.key === 'g' || e.key === 'G') {
         store.updateGrid({ visible: !store.grid.visible });
       }

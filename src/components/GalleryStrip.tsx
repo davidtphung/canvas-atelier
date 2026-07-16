@@ -8,6 +8,8 @@ export function GalleryStrip() {
   const canvas = useStudioStore((s) => s.canvas);
   const setStyle = useStudioStore((s) => s.setStyle);
   const regenerate = useStudioStore((s) => s.regenerate);
+  const clearCanvas = useStudioStore((s) => s.clearCanvas);
+  const newProject = useStudioStore((s) => s.newProject);
   const library = useStudioStore((s) => s.library);
   const loadProject = useStudioStore((s) => s.loadProject);
 
@@ -62,6 +64,30 @@ export function GalleryStrip() {
         >
           <span className="gallery-shuffle-icon">↻</span>
           <span className="gallery-card-label">Shuffle</span>
+        </button>
+
+        <button
+          type="button"
+          className="gallery-card gallery-empty"
+          onClick={() => clearCanvas()}
+          aria-label="Empty canvas — clear all forms"
+          title="Clear paper and paint from scratch"
+        >
+          <span className="gallery-empty-mark" aria-hidden="true" />
+          <span className="gallery-card-label">Empty</span>
+        </button>
+
+        <button
+          type="button"
+          className="gallery-card gallery-empty"
+          onClick={() => newProject({ empty: true })}
+          aria-label="New blank project"
+          title="New project with empty canvas"
+        >
+          <span className="gallery-blank-icon" aria-hidden="true">
+            +
+          </span>
+          <span className="gallery-card-label">Blank</span>
         </button>
 
         {library.slice(0, 4).map((p) => (

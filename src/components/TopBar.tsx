@@ -7,6 +7,7 @@ export function TopBar() {
   const projectName = useStudioStore((s) => s.projectName);
   const saveProject = useStudioStore((s) => s.saveProject);
   const newProject = useStudioStore((s) => s.newProject);
+  const clearCanvas = useStudioStore((s) => s.clearCanvas);
   const undo = useStudioStore((s) => s.undo);
   const redo = useStudioStore((s) => s.redo);
   const past = useStudioStore((s) => s.past);
@@ -85,8 +86,17 @@ export function TopBar() {
         >
           <Icons.alive />
         </button>
-        <button type="button" className="btn btn-icon desktop-only" onClick={() => regenerate()} aria-label="Regenerate composition">
+        <button type="button" className="btn btn-icon desktop-only" onClick={() => regenerate()} aria-label="Regenerate composition" title="New composition">
           <Icons.spark />
+        </button>
+        <button
+          type="button"
+          className="btn btn-icon"
+          onClick={() => clearCanvas()}
+          aria-label="Empty canvas"
+          title="Clear all forms — start from empty paper"
+        >
+          <Icons.empty />
         </button>
         <button type="button" className="btn btn-icon" onClick={() => setPanel('library')} aria-label="Project library">
           <Icons.library />
@@ -97,7 +107,20 @@ export function TopBar() {
         <button type="button" className="btn btn-icon" onClick={() => setOnboarding(true)} aria-label="Help and tour">
           <Icons.help />
         </button>
-        <button type="button" className="btn btn-ghost desktop-only" onClick={() => newProject()}>
+        <button
+          type="button"
+          className="btn btn-ghost desktop-only"
+          onClick={() => newProject({ empty: true })}
+          title="New empty canvas project"
+        >
+          Blank
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost desktop-only"
+          onClick={() => newProject()}
+          title="New project with starter composition"
+        >
           New
         </button>
         <button type="button" className="btn btn-secondary" onClick={() => saveProject()}>

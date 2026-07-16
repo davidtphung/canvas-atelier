@@ -41,6 +41,9 @@ export function Inspector() {
   const applyNlRefine = useStudioStore((s) => s.applyNlRefine);
   const lastRefineSummary = useStudioStore((s) => s.lastRefineSummary);
   const setAlive = useStudioStore((s) => s.setAlive);
+  const clearCanvas = useStudioStore((s) => s.clearCanvas);
+  const newProject = useStudioStore((s) => s.newProject);
+  const regenerate = useStudioStore((s) => s.regenerate);
   const inspectorOpen = useStudioStore((s) => s.inspectorOpen);
   const toggleInspector = useStudioStore((s) => s.toggleInspector);
   const activePanel = useStudioStore((s) => s.activePanel);
@@ -86,6 +89,39 @@ export function Inspector() {
           <Icons.chevronRight />
         </button>
       </div>
+
+      <section className="inspector-section">
+        <p className="section-label">Start</p>
+        <div className="start-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ width: '100%' }}
+            onClick={() => clearCanvas()}
+          >
+            Empty canvas
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ width: '100%' }}
+            onClick={() => newProject({ empty: true })}
+          >
+            New blank project
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ width: '100%' }}
+            onClick={() => regenerate()}
+          >
+            Starter composition
+          </button>
+        </div>
+        <p className="hint" style={{ margin: 0 }}>
+          Empty paper is ready for spilled ink. Starter loads a curated modernist layout.
+        </p>
+      </section>
 
       <section className="inspector-section">
         <p className="section-label">Paint canvas</p>

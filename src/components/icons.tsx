@@ -180,6 +180,14 @@ export const Icons = {
         <path d="M4 7h16M9 7V5h6v2M8 7l1 12h6l1-12" />
       </>,
     ),
+  empty: (p: IconProps) =>
+    base(
+      p,
+      <>
+        <rect x="4" y="4" width="16" height="16" rx="2" />
+        <path d="M9 12h6" />
+      </>,
+    ),
   close: (p: IconProps) => base(p, <path d="M6 6l12 12M18 6L6 18" />),
   help: (p: IconProps) =>
     base(

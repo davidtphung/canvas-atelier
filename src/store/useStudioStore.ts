@@ -180,6 +180,8 @@ export type StudioState = {
   setCanvasFormat: (formatId: CanvasFormatId) => void;
   setOrientation: (orientation: CanvasOrientation) => void;
   regenerate: () => void;
+  /** Clear all forms — keep canvas size, style, and grid */
+  clearCanvas: () => void;
   setImage: (image: UploadedImage | null) => void;
   updateImage: (partial: Partial<UploadedImage>) => void;
   generateFromImage: () => Promise<void>;
@@ -193,7 +195,8 @@ export type StudioState = {
   setTimelineTime: (t: number) => void;
   saveProject: (name?: string) => void;
   loadProject: (id: string) => void;
-  newProject: () => void;
+  /** Start a new project; empty = blank paper with no forms */
+  newProject: (opts?: { empty?: boolean }) => void;
   duplicateProject: () => void;
   deleteLibraryProject: (id: string) => void;
   importProject: (doc: ProjectDocument) => void;
@@ -604,6 +607,18 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     get().toast('New composition');
   },
 
+  clearCanvas: () => {
+    get().pushHistory();
+    set({
+      shapes: [],
+      selectedIds: [],
+      image: null,
+      updatedAt: new Date().toISOString(),
+    });
+    get().scheduleAutosave();
+    get().toast('Empty canvas — ready to paint');
+  },
+
   setImage: (image) => {
     get().pushHistory();
     set({ image, updatedAt: new Date().toISOString() });
@@ -733,25 +748,34 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     get().toast(`Opened “${doc.meta.name}”`);
   },
 
-  newProject: () => {
+  newProject: (opts) => {
     get().pushHistory();
-    const canvas = { ...defaultCanvas };
+    const empty = Boolean(opts?.empty);
+    const theme = get().a11y.theme;
+    const resolved = resolveTheme(theme);
+    const palette = THEME_CANVAS[resolved];
+    const canvas = {
+      ...defaultCanvas,
+      background: palette.background,
+      shapeColor: palette.shapeColor,
+    };
     const now = new Date().toISOString();
     set({
       projectId: nanoid(12),
-      projectName: 'Untitled Composition',
+      projectName: empty ? 'Untitled blank' : 'Untitled Composition',
       projectVersion: 1,
       createdAt: now,
       updatedAt: now,
       canvas,
       grid: { ...defaultGrid },
-      shapes: createDefaultComposition(canvas),
+      shapes: empty ? [] : createDefaultComposition(canvas),
       image: null,
       selectedIds: [],
       animation: { ...defaultAnimation },
+      tool: empty ? 'ink' : get().tool,
     });
     get().scheduleAutosave();
-    get().toast('New project');
+    get().toast(empty ? 'New empty canvas' : 'New project');
   },
 
   duplicateProject: () => {

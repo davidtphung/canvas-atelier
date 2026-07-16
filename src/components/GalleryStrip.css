@@ -64,11 +64,30 @@
 }
 
 .gallery-shuffle,
-.gallery-saved {
+.gallery-saved,
+.gallery-empty {
   justify-content: center;
   min-height: 100px;
   border: 1px dashed var(--line-strong);
   background: var(--paper-elevated);
+}
+
+.gallery-empty-mark {
+  width: 36px;
+  height: 44px;
+  margin-top: auto;
+  border-radius: 3px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--canvas-paper, var(--paper));
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.gallery-blank-icon {
+  margin-top: auto;
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink-soft);
 }
 
 .gallery-shuffle-icon {
