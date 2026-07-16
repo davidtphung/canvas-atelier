@@ -16,6 +16,7 @@ import {
   createBodyFromShape,
   growPuddle,
   impulseSelect,
+  inkBlobNodes,
   integrateBody,
   releaseFingerGrab,
   softCollide,
@@ -32,6 +33,7 @@ import {
   dabSpacingFromPressure,
   resolvePaintPressure,
 } from '../lib/paintPressure';
+import { getPerfProfile } from '../lib/perf';
 import './ArtCanvas.css';
 
 type DragMode =
@@ -77,6 +79,7 @@ export function ArtCanvas() {
   const updateShape = useStudioStore((s) => s.updateShape);
   const pushHistory = useStudioStore((s) => s.pushHistory);
   const addBlob = useStudioStore((s) => s.addBlob);
+  const addInkPuddle = useStudioStore((s) => s.addInkPuddle);
   const booleanSelected = useStudioStore((s) => s.booleanSelected);
   const scheduleAutosave = useStudioStore((s) => s.scheduleAutosave);
 
@@ -91,6 +94,8 @@ export function ArtCanvas() {
     ox: number;
     oy: number;
   } | null>(null);
+  const paintGhostRef = useRef(paintGhost);
+  paintGhostRef.current = paintGhost;
   const [fingerCursor, setFingerCursor] = useState<{
     x: number;
     y: number;
@@ -98,9 +103,21 @@ export function ArtCanvas() {
     /** preview radius in canvas units */
     radius: number;
   } | null>(null);
+  const lastCursorRenderRef = useRef(0);
   const timeRef = useRef(0);
   const hoverRef = useRef<{ x: number; y: number } | null>(null);
   const strokeHistoryPushed = useRef(false);
+  const physicsRafRef = useRef(0);
+  const physicsRunningRef = useRef(false);
+  const physicsFrameRef = useRef(0);
+  const lastRenderAtRef = useRef(0);
+  const lastPhysicsAtRef = useRef(performance.now());
+  const wakeUntilRef = useRef(0);
+  const perfRef = useRef(getPerfProfile());
+  const canvasSizeRef = useRef({ w: canvas.width, h: canvas.height });
+  canvasSizeRef.current = { w: canvas.width, h: canvas.height };
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
 
   const reduced = a11y.reducedMotion;
   const fluid = !reduced;
@@ -111,6 +128,9 @@ export function ArtCanvas() {
   const driftAmp = motionOn && animation.drift ? canvas.aliveIntensity : 0;
   // Freeze at current time when paused (scrubber still works)
   const phase = timelineTime;
+  const perf = getPerfProfile();
+  perfRef.current = perf;
+  const useGoo = fluid && perf.gooFilter;
 
   // Keep fluid bodies in sync with shape list
   useEffect(() => {
@@ -148,55 +168,101 @@ export function ArtCanvas() {
     }
   }, [shapes]);
 
-  // Physics loop - liquid inertia, finger spring, soft collisions, jiggle
-  useEffect(() => {
-    if (!fluid) return;
-    let raf = 0;
-    let last = performance.now();
-    const step = (now: number) => {
-      const dt = Math.min(2, (now - last) / 16.67);
-      last = now;
+  const runPhysicsStep = useCallback(
+    (now: number) => {
+      const p = perfRef.current;
+      const dt = Math.min(2, (now - lastPhysicsAtRef.current) / 16.67);
+      lastPhysicsAtRef.current = now;
       timeRef.current += 0.016 * dt;
+      physicsFrameRef.current += 1;
 
       const map = bodiesRef.current;
-      const list = [...map.values()].filter((b) => !b.locked);
+      const list: FluidBody[] = [];
+      for (const b of map.values()) {
+        if (!b.locked) list.push(b);
+      }
       let active = false;
+      const drag = dragRef.current;
+      const { w: cw, h: ch } = canvasSizeRef.current;
+      const currentTool = toolRef.current;
 
-      // Soft liquid collisions
-      for (let i = 0; i < list.length; i++) {
-        for (let j = i + 1; j < list.length; j++) {
-          softCollide(list[i], list[j]);
+      if (list.length > 1 && physicsFrameRef.current % p.collideEvery === 0) {
+        let pairs = 0;
+        outer: for (let i = 0; i < list.length; i++) {
+          for (let j = i + 1; j < list.length; j++) {
+            softCollide(list[i], list[j]);
+            if (++pairs >= p.maxCollidePairs) break outer;
+          }
         }
       }
 
-      // Ambient hover field (cursor / trackpad glide without click)
       const hover = hoverRef.current;
-      const drag = dragRef.current;
       if (
+        p.ambientField &&
         hover &&
         !drag &&
-        (tool === 'ink' || tool === 'select' || tool === 'hand') &&
-        !reduced
+        (currentTool === 'ink' || currentTool === 'select' || currentTool === 'hand')
       ) {
         for (const body of list) {
-          applyProximityField(body, hover.x, hover.y, tool === 'ink' ? 1.15 : 0.55);
+          applyProximityField(body, hover.x, hover.y, currentTool === 'ink' ? 1.05 : 0.5);
         }
       }
 
       for (const body of map.values()) {
-        if (integrateBody(body, canvas.width, canvas.height, dt)) {
-          active = true;
-        }
+        if (integrateBody(body, cw, ch, dt)) active = true;
       }
 
-      if (active || drag || paintGhost || fingerCursor) {
+      const interacting = drag != null || paintGhostRef.current != null;
+      const keepAlive = active || interacting || now < wakeUntilRef.current;
+      const minFrameMs = 1000 / p.renderHz;
+      if (keepAlive && now - lastRenderAtRef.current >= minFrameMs) {
+        lastRenderAtRef.current = now;
         setTick((t) => (t + 1) % 1_000_000);
       }
-      raf = requestAnimationFrame(step);
+
+      return keepAlive;
+    },
+    [],
+  );
+
+  const startPhysicsLoop = useCallback(() => {
+    if (!fluid || physicsRunningRef.current) return;
+    physicsRunningRef.current = true;
+    lastPhysicsAtRef.current = performance.now();
+    const tick = (now: number) => {
+      const keep = runPhysicsStep(now);
+      if (keep) {
+        physicsRafRef.current = requestAnimationFrame(tick);
+      } else {
+        physicsRunningRef.current = false;
+        physicsRafRef.current = 0;
+      }
     };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [fluid, canvas.width, canvas.height, paintGhost, fingerCursor, tool, reduced]);
+    physicsRafRef.current = requestAnimationFrame(tick);
+  }, [fluid, runPhysicsStep]);
+
+  const wakePhysics = useCallback(
+    (ms = 1000) => {
+      wakeUntilRef.current = Math.max(wakeUntilRef.current, performance.now() + ms);
+      startPhysicsLoop();
+    },
+    [startPhysicsLoop],
+  );
+
+  useEffect(() => {
+    if (!fluid) {
+      if (physicsRafRef.current) cancelAnimationFrame(physicsRafRef.current);
+      physicsRafRef.current = 0;
+      physicsRunningRef.current = false;
+      return;
+    }
+    wakePhysics(400);
+    return () => {
+      if (physicsRafRef.current) cancelAnimationFrame(physicsRafRef.current);
+      physicsRafRef.current = 0;
+      physicsRunningRef.current = false;
+    };
+  }, [fluid, wakePhysics]);
 
   // Sync settled fluid positions back into project state
   const scheduleSync = useCallback(() => {
@@ -210,11 +276,15 @@ export function ArtCanvas() {
         if (
           Math.abs(sh.x - body.x) > 0.5 ||
           Math.abs(sh.y - body.y) > 0.5 ||
+          Math.abs(sh.width - body.width) > 0.5 ||
+          Math.abs(sh.height - body.height) > 0.5 ||
           Math.abs(sh.rotation - body.rotation) > 0.5
         ) {
           updateShape(id, {
             x: body.x,
             y: body.y,
+            width: body.width,
+            height: body.height,
             rotation: body.rotation,
           });
         }
@@ -279,35 +349,79 @@ export function ArtCanvas() {
     return body;
   };
 
-  /** Place one pressure-sized ink dab (no history push - caller batches stroke) */
+  /**
+   * Place one organic ink dab. On desktop, overlapping dabs blend via goo filter.
+   * On mobile we cap form count and space dabs farther for FPS.
+   */
   const placePaintDab = (
     x: number,
     y: number,
     pressure: number,
     velocity?: { vx: number; vy: number },
   ) => {
-    const { width, height } = blobSizeFromPressure(pressure);
-    addBlob(x, y);
+    wakePhysics(1200);
+    const p = getPerfProfile();
     const state = useStudioStore.getState();
-    const id = state.selectedIds[0];
-    const sh = state.shapes.find((s) => s.id === id);
+    const inkCount = state.shapes.filter((s) => s.kind === 'blob' && !s.hidden).length;
+
+    // Cap shape count: grow nearest dab instead of spawning another React node
+    if (inkCount >= p.maxInkShapes) {
+      let best: FluidBody | null = null;
+      let bestD = 120;
+      for (const b of bodiesRef.current.values()) {
+        if (b.locked) continue;
+        const cx = b.x + b.width / 2;
+        const cy = b.y + b.height / 2;
+        const d = Math.hypot(cx - x, cy - y);
+        if (d < bestD) {
+          bestD = d;
+          best = b;
+        }
+      }
+      if (best) {
+        const { width, height } = blobSizeFromPressure(pressure);
+        best.width = Math.min(320, best.width + width * 0.12);
+        best.height = Math.min(300, best.height + height * 0.12);
+        best.x = x - best.width / 2;
+        best.y = y - best.height / 2;
+        best.jiggle = Math.max(best.jiggle, 0.4 + pressure * 0.35);
+        if (velocity) {
+          best.vx = best.vx * 0.5 + velocity.vx * 0.15;
+          best.vy = best.vy * 0.5 + velocity.vy * 0.15;
+        }
+        updateShape(best.id, {
+          x: best.x,
+          y: best.y,
+          width: best.width,
+          height: best.height,
+        });
+        return { id: best.id, body: best, width: best.width, height: best.height };
+      }
+    }
+
+    const { width, height } = blobSizeFromPressure(pressure);
+    const nodes = inkBlobNodes(pressure, p.simpleNodes);
+    const id = addInkPuddle({
+      x,
+      y,
+      width,
+      height,
+      nodes,
+      name: 'Ink',
+    });
+    const sh = useStudioStore.getState().shapes.find((s) => s.id === id);
     if (!sh) return null;
     const body = ensureBody(sh);
     body.width = width;
     body.height = height;
     body.x = x - width / 2;
     body.y = y - height / 2;
-    body.jiggle = 0.5 + pressure * 0.5;
+    body.jiggle = 0.45 + pressure * 0.45;
+    body.settle = 0.35;
     if (velocity) {
-      body.vx = velocity.vx * 0.25;
-      body.vy = velocity.vy * 0.25;
+      body.vx = velocity.vx * 0.18;
+      body.vy = velocity.vy * 0.18;
     }
-    updateShape(id, {
-      x: body.x,
-      y: body.y,
-      width: body.width,
-      height: body.height,
-    });
     return { id, body, width, height };
   };
 
@@ -334,6 +448,7 @@ export function ArtCanvas() {
   const onPointerDownBg = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
     e.preventDefault();
+    wakePhysics(2000);
     const { x, y } = clientToSvg(e.clientX, e.clientY);
     const sample: FluidSample = { x, y, t: performance.now() };
     const downAt = performance.now();
@@ -395,7 +510,7 @@ export function ArtCanvas() {
           lastPressure: e.pressure || 0.45,
         };
       } else {
-        // Continuous paint stroke
+        // Organic ink stroke — soft overlapping dabs blend into natural flow
         pushHistory();
         strokeHistoryPushed.current = true;
         const pressure = pressureFromEvent(e, [sample], downAt);
@@ -471,11 +586,16 @@ export function ArtCanvas() {
   const onPointerMove = (e: ReactPointerEvent) => {
     const { x, y } = clientToSvg(e.clientX, e.clientY);
     hoverRef.current = { x, y };
+    if (dragRef.current || e.buttons === 1) wakePhysics(800);
 
     const drag = dragRef.current;
 
-    // Live brush preview size even when not painting
-    if (inkMode && !drag) {
+    // Live brush preview — throttle on low-power devices to cut React churn
+    const cursorMinMs = getPerfProfile().lowPower ? 40 : 0;
+    const canCursor =
+      performance.now() - lastCursorRenderRef.current >= cursorMinMs;
+    if (inkMode && !drag && canCursor) {
+      lastCursorRenderRef.current = performance.now();
       const p = resolvePaintPressure({
         pressure: e.pressure,
         pointerType: e.pointerType,
@@ -485,9 +605,8 @@ export function ArtCanvas() {
       });
       const size = blobSizeFromPressure(p);
       setFingerCursor({ x, y, down: e.buttons === 1, radius: size.width / 2 });
-    } else if (drag) {
-      // update cursor below per-mode
-    } else if (tool === 'select' || tool === 'hand') {
+    } else if (!drag && (tool === 'select' || tool === 'hand') && canCursor) {
+      lastCursorRenderRef.current = performance.now();
       setFingerCursor({ x, y, down: false, radius: 14 });
     }
 
@@ -502,47 +621,46 @@ export function ArtCanvas() {
       return;
     }
 
-    // Continuous paint stroke - deposit dabs; harder press = larger blobs
+    // Continuous ink stroke — overlapping organic dabs blend via goo filter
     if (drag.mode === 'ink-paint') {
       const pressure = pressureFromEvent(e, drag.samples, drag.downAt);
       drag.lastPressure = pressure;
       const size = blobSizeFromPressure(pressure);
       setFingerCursor({ x, y, down: true, radius: size.width / 2 });
 
-      const spacing = dabSpacingFromPressure(pressure);
+      const spacing =
+        dabSpacingFromPressure(pressure) * getPerfProfile().dabSpacingScale;
       const dist = Math.hypot(x - drag.lastSpillX, y - drag.lastSpillY);
 
       if (dist >= spacing) {
-        // Interpolate dabs along the path so fast strokes don't skip
         const steps = Math.max(1, Math.floor(dist / spacing));
         const v = velocityFromSamples(drag.samples);
         for (let s = 1; s <= steps; s++) {
           const t = s / steps;
           const ix = drag.lastSpillX + (x - drag.lastSpillX) * t;
           const iy = drag.lastSpillY + (y - drag.lastSpillY) * t;
-          placePaintDab(ix, iy, pressure, v);
+          const dab = placePaintDab(ix, iy, pressure, v);
+          if (dab) drag.shapeId = dab.id;
         }
         drag.lastSpillX = x;
         drag.lastSpillY = y;
-      } else if (dist < 4) {
-        // Holding still: grow the last blob with dwell pressure
-        if (drag.shapeId) {
-          const body = bodiesRef.current.get(drag.shapeId);
-          if (body) {
-            const target = blobSizeFromPressure(pressure);
-            body.width += (target.width - body.width) * 0.12;
-            body.height += (target.height - body.height) * 0.12;
-            body.x = x - body.width / 2;
-            body.y = y - body.height / 2;
-            body.jiggle = Math.max(body.jiggle, 0.4 + pressure * 0.4);
-            growPuddle(body, pressure * 0.35);
-            updateShape(drag.shapeId, {
-              x: body.x,
-              y: body.y,
-              width: body.width,
-              height: body.height,
-            });
-          }
+      } else if (dist < 4 && drag.shapeId) {
+        // Hold still: soak and bloom the last dab
+        const body = bodiesRef.current.get(drag.shapeId);
+        if (body) {
+          const target = blobSizeFromPressure(pressure);
+          body.width += (target.width - body.width) * 0.1;
+          body.height += (target.height - body.height) * 0.1;
+          body.x = x - body.width / 2;
+          body.y = y - body.height / 2;
+          body.jiggle = Math.max(body.jiggle, 0.35 + pressure * 0.35);
+          growPuddle(body, pressure * 0.3);
+          updateShape(drag.shapeId, {
+            x: body.x,
+            y: body.y,
+            width: body.width,
+            height: body.height,
+          });
         }
       }
 
@@ -661,12 +779,11 @@ export function ArtCanvas() {
     }
 
     if (drag.mode === 'ink-paint') {
-      // Soft settle on last dab
       if (drag.shapeId) {
         const body = bodiesRef.current.get(drag.shapeId);
         if (body) {
-          body.jiggle = Math.max(body.jiggle, 0.35);
-          body.settle = 0.4;
+          body.jiggle = Math.max(body.jiggle, 0.3);
+          body.settle = 0.45;
         }
       }
       scheduleSync();
@@ -713,9 +830,8 @@ export function ArtCanvas() {
   /** Trackpad two-finger scroll / mouse wheel - push ink like a finger swipe */
   const onWheel = (e: React.WheelEvent) => {
     if (reduced || (!inkMode && tool !== 'select' && tool !== 'hand')) return;
-    // Don't steal page scroll when user clearly scrolling the document
-    // Prefer canvas ink push when over the art surface
     e.preventDefault();
+    wakePhysics(600);
     const { x, y } = clientToSvg(e.clientX, e.clientY);
     hoverRef.current = { x, y };
     const dx = e.deltaX;
@@ -815,6 +931,7 @@ export function ArtCanvas() {
       : canvas.orientation === 'landscape'
         ? 'Landscape'
         : 'Square';
+  const deformThreshold = perf.lowPower ? 0.12 : 0.04;
 
   const hint = reduced
     ? 'Select and edit forms on the canvas'
@@ -856,16 +973,25 @@ export function ArtCanvas() {
         onWheel={onWheel}
       >
         <defs>
-          <filter id="liquid-soft" x="-8%" y="-8%" width="116%" height="116%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" result="b" />
-            <feColorMatrix
-              in="b"
-              type="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
-              result="goo"
-            />
-            <feBlend in="SourceGraphic" in2="goo" mode="normal" />
-          </filter>
+          {/* Desktop only: goo filter is a major mobile GPU cost */}
+          {useGoo && (
+            <filter
+              id="liquid-soft"
+              x="-22%"
+              y="-22%"
+              width="144%"
+              height="144%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur" />
+              <feColorMatrix
+                in="blur"
+                type="matrix"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+                result="goo"
+              />
+            </filter>
+          )}
           <pattern
             id="atelier-grid"
             width={spacing}
@@ -933,7 +1059,7 @@ export function ArtCanvas() {
           />
         )}
 
-        <g className="ink-layer" filter={fluid ? 'url(#liquid-soft)' : undefined}>
+        <g className="ink-layer" filter={useGoo ? 'url(#liquid-soft)' : undefined}>
           {roots.list.map((s, idx) => {
             const body = bodiesRef.current.get(s.id);
             const d = shapePathWithFluid(
@@ -943,6 +1069,7 @@ export function ArtCanvas() {
               phase,
               morphAmp,
               canvas.softness,
+              deformThreshold,
             );
             const bx = body?.x ?? s.x;
             const by = body?.y ?? s.y;

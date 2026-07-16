@@ -76,6 +76,13 @@
   cursor: none;
 }
 
+/* Soft organic ink masses — About-page charcoal silhouettes */
+.art-canvas .ink-layer path {
+  fill-rule: evenodd;
+  paint-order: fill;
+  shape-rendering: geometricPrecision;
+}
+
 .art-canvas.is-ink-mode:active {
   cursor: none;
 }

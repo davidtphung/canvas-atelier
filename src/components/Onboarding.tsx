@@ -14,7 +14,7 @@ const STEPS = [
   },
   {
     title: 'Export when ready',
-    body: 'Save locally, export PNG or H.264 MP4. About and Donate live in the top nav.',
+    body: 'Save locally, export PNG or H.264 MP4. About (with a Donate tab) is in the top nav.',
   },
 ];
 

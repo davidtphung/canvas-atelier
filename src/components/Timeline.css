@@ -29,18 +29,29 @@
 .timeline-controls {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  min-width: 0;
+  width: 100%;
 }
 
 .timeline-scrub {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
+  min-width: 0;
+}
+
+.timeline-scrub .range {
+  min-width: 0;
+  width: 100%;
 }
 
 .timeline-time {
-  min-width: 2.5rem;
+  flex: 0 0 auto;
+  min-width: 2.25rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .timeline-toggles {

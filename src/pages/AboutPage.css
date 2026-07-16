@@ -7,12 +7,15 @@
 
 .about-page {
   width: min(720px, 100%);
+  max-width: 100%;
   margin: 0 auto;
   padding: var(--space-8) var(--space-6) var(--space-16);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
   color: var(--ink);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .about-tabs {
@@ -23,22 +26,37 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface-muted);
+  position: sticky;
+  top: calc(var(--topbar-height) + var(--space-2));
+  z-index: 2;
 }
 
 .about-tab {
-  min-height: 34px;
-  padding: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  min-width: 5.5rem;
+  padding: 0 1.1rem;
   border-radius: calc(var(--radius-sm) - 1px);
   font-size: 0.8125rem;
   font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--charcoal-mid);
+  text-decoration: none;
   transition:
     background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .about-tab:hover {
   color: var(--ink);
+}
+
+.about-tab:focus-visible {
+  outline: 2px solid var(--accent, var(--ink));
+  outline-offset: 2px;
 }
 
 .about-tab.is-active,
@@ -46,6 +64,7 @@
   background: var(--paper-elevated);
   color: var(--ink);
   box-shadow: var(--shadow-xs);
+  font-weight: 600;
 }
 
 .about-panel {
@@ -69,19 +88,22 @@
 .about-title {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: clamp(1.5rem, 6vw, 3rem);
   font-weight: 600;
   letter-spacing: -0.04em;
-  line-height: 1.08;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .about-lede {
   margin: 0;
   max-width: 42ch;
-  font-size: 1.0625rem;
+  font-size: clamp(0.9rem, 2.8vw, 1.0625rem);
   line-height: 1.55;
   letter-spacing: -0.015em;
   color: var(--ink-soft);
+  overflow-wrap: break-word;
 }
 
 .about-art {
@@ -131,16 +153,18 @@
 
 .about-list li {
   font-size: 0.9375rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--ink-soft);
   padding-left: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .about-list strong {
-  display: inline-block;
-  min-width: 5.5rem;
+  display: inline;
   font-weight: 600;
   color: var(--ink);
+  margin-right: 0.25rem;
 }
 
 .about-link {
@@ -290,8 +314,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .donate-card-title-row {
@@ -390,12 +416,23 @@
   .about-page {
     padding: var(--space-6) var(--space-4) var(--space-12);
     gap: var(--space-6);
+    width: min(720px, 100%);
+    max-width: 100%;
   }
 
-  .about-list strong {
-    display: block;
-    min-width: 0;
-    margin-bottom: 0.15rem;
+  .about-tabs {
+    max-width: 100%;
+  }
+
+  .donate-title {
+    font-size: clamp(1.35rem, 6vw, 1.85rem);
+    overflow-wrap: anywhere;
+  }
+
+  .donate-address {
+    white-space: normal;
+    word-break: break-all;
+    line-height: 1.4;
   }
 
   .donate-address-row {
@@ -403,6 +440,15 @@
   }
 
   .donate-copy {
+    width: 100%;
+  }
+
+  .about-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .about-footer .btn {
     width: 100%;
   }
 }

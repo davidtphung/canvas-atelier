@@ -1,5 +1,5 @@
 import type { BlobNode, Shape } from '../types';
-import { clamp, shapeToPath } from './geometry';
+import { clamp, generateBlobNodes, shapeToPath } from './geometry';
 
 export type FluidBody = {
   id: string;
@@ -12,12 +12,11 @@ export type FluidBody = {
   rotation: number;
   /** Residual liquid jiggle energy 0…1+ */
   jiggle: number;
-  /** Seconds of soft settle after impact */
+  /** Soft settle after impact */
   settle: number;
   locked: boolean;
-  /** Cursor/finger target (canvas space center) while smearing */
+  /** Cursor/finger target while smearing */
   fingerTarget: { x: number; y: number } | null;
-  /** Grab offset from body center when finger first touches */
   grabOffset: { x: number; y: number };
 };
 
@@ -27,14 +26,13 @@ export type FluidSample = {
   t: number;
 };
 
-const FRICTION = 0.958;
-const MIN_VEL = 0.06;
-const EDGE_BOUNCE = 0.52;
-const MAX_SPEED = 48;
-const JIGGLE_DECAY = 0.93;
-/** How strongly finger spring pulls the puddle center */
-const FINGER_SPRING = 0.32;
-const FINGER_DAMP = 0.82;
+const FRICTION = 0.962;
+const MIN_VEL = 0.05;
+const EDGE_BOUNCE = 0.48;
+const MAX_SPEED = 46;
+const JIGGLE_DECAY = 0.935;
+const FINGER_SPRING = 0.3;
+const FINGER_DAMP = 0.84;
 
 export function createBodyFromShape(shape: Shape): FluidBody {
   return {
@@ -73,8 +71,8 @@ export function velocityFromSamples(samples: FluidSample[]): { vx: number; vy: n
 }
 
 /**
- * Deform organic nodes like viscous liquid under velocity + jiggle.
- * Stretch along motion, soft ripple around the rim.
+ * Organic ink deformation — soft stretch + slow surface ripple.
+ * Preserves About-page lobed silhouette; motion only gently breathes it.
  */
 export function liquidDeformNodes(
   nodes: BlobNode[],
@@ -86,20 +84,24 @@ export function liquidDeformNodes(
 ): BlobNode[] {
   const speed = Math.hypot(vx, vy);
   const angle = speed > 0.01 ? Math.atan2(vy, vx) : 0;
-  const stretchAmt = clamp(speed * 0.014, 0, 0.5);
-  const jAmt = clamp(jiggle, 0, 1.6);
+  // Keep stretch subtle so organic lobes stay readable
+  const stretchAmt = clamp(speed * 0.009, 0, 0.28);
+  const jAmt = clamp(jiggle, 0, 1.15);
 
   return nodes.map((n, i) => {
     const align = Math.cos(n.angle - angle);
-    const stretch = 1 + align * stretchAmt - (1 - Math.abs(align)) * stretchAmt * 0.38;
+    const stretch =
+      1 +
+      align * stretchAmt * 0.85 -
+      (1 - Math.abs(align)) * stretchAmt * 0.28;
+    // Slow, low-frequency ripple only (no high-freq edge noise)
     const ripple =
-      Math.sin(time * 7.2 + i * 1.35 + n.angle * 2) * jAmt * 0.08 +
-      Math.sin(time * 11 + i * 0.6) * jAmt * 0.035;
-    const pressure = Math.sin(time * 3.1 + n.angle * 3) * jAmt * 0.025;
-    const radius = clamp(n.radius * stretch + ripple + pressure, 0.26, 1.4);
+      Math.sin(time * 4.2 + i * 0.9 + n.angle * 1.6) * jAmt * 0.038 +
+      Math.cos(time * 2.1 + n.angle * 2.4) * jAmt * 0.016;
+    const radius = clamp(n.radius * stretch + ripple, 0.4, 1.22);
     const tension = clamp(
-      n.tension + softness * 0.1 + stretchAmt * 0.28 + jAmt * 0.14,
-      0.12,
+      n.tension + softness * 0.08 + stretchAmt * 0.12 + jAmt * 0.06,
+      0.4,
       0.99,
     );
     return { ...n, radius, tension };
@@ -113,12 +115,14 @@ export function shapePathWithFluid(
   morphPhase: number,
   morphAmp: number,
   softness: number,
+  /** Higher = skip deformation more often (mobile) */
+  deformThreshold = 0.04,
 ): string {
   const vx = body?.vx ?? 0;
   const vy = body?.vy ?? 0;
   const jiggle = body?.jiggle ?? 0;
   const nodes =
-    Math.hypot(vx, vy) > 0.05 || jiggle > 0.02
+    Math.hypot(vx, vy) > deformThreshold || jiggle > deformThreshold * 0.4
       ? liquidDeformNodes(shape.nodes, vx, vy, jiggle, time, softness)
       : shape.nodes;
   const local: Shape = {
@@ -147,7 +151,7 @@ export function integrateBody(
     return body.jiggle > 0.02;
   }
 
-  // Viscous finger spring - ink follows cursor like wet paint under a fingertip
+  // Viscous finger spring — ink follows cursor like wet paint
   if (body.fingerTarget) {
     const cx = body.x + body.width / 2;
     const cy = body.y + body.height / 2;
@@ -157,12 +161,11 @@ export function integrateBody(
     body.vy += (ty - cy) * FINGER_SPRING * dt;
     body.vx *= FINGER_DAMP;
     body.vy *= FINGER_DAMP;
-    body.jiggle = Math.max(body.jiggle, 0.45 + Math.hypot(body.vx, body.vy) * 0.03);
-    // Slight squash growth while smearing fast
+    body.jiggle = Math.max(body.jiggle, 0.4 + Math.hypot(body.vx, body.vy) * 0.028);
     const spd = Math.hypot(body.vx, body.vy);
     if (spd > 2) {
-      body.width = Math.min(body.width * (1 + 0.0015 * dt), body.width * 1.002);
-      body.height = Math.min(body.height * (1 + 0.0012 * dt), body.height * 1.002);
+      body.width = Math.min(body.width * (1 + 0.0012 * dt), body.width * 1.0015);
+      body.height = Math.min(body.height * (1 + 0.001 * dt), body.height * 1.0015);
     }
   }
 
@@ -181,26 +184,26 @@ export function integrateBody(
   if (body.x < pad) {
     body.x = pad;
     body.vx = Math.abs(body.vx) * EDGE_BOUNCE;
-    body.jiggle = Math.min(1.3, body.jiggle + 0.35);
+    body.jiggle = Math.min(1.25, body.jiggle + 0.3);
   }
   if (body.y < pad) {
     body.y = pad;
     body.vy = Math.abs(body.vy) * EDGE_BOUNCE;
-    body.jiggle = Math.min(1.3, body.jiggle + 0.35);
+    body.jiggle = Math.min(1.25, body.jiggle + 0.3);
   }
   if (body.x + body.width > canvasW - pad) {
     body.x = canvasW - pad - body.width;
     body.vx = -Math.abs(body.vx) * EDGE_BOUNCE;
-    body.jiggle = Math.min(1.3, body.jiggle + 0.35);
+    body.jiggle = Math.min(1.25, body.jiggle + 0.3);
   }
   if (body.y + body.height > canvasH - pad) {
     body.y = canvasH - pad - body.height;
     body.vy = -Math.abs(body.vy) * EDGE_BOUNCE;
-    body.jiggle = Math.min(1.3, body.jiggle + 0.35);
+    body.jiggle = Math.min(1.25, body.jiggle + 0.3);
   }
 
   if (Math.hypot(body.vx, body.vy) > 0.5) {
-    body.rotation += body.vx * 0.035 * dt;
+    body.rotation += body.vx * 0.028 * dt;
   }
 
   if (Math.hypot(body.vx, body.vy) < MIN_VEL && !body.fingerTarget) {
@@ -216,7 +219,10 @@ export function integrateBody(
   );
 }
 
-/** Soft pairwise push so blobs feel like liquid pools */
+/**
+ * Soft pairwise push — light enough that overlapping dabs rest together
+ * and the SVG goo filter blends them into one natural ink mass.
+ */
 export function softCollide(a: FluidBody, b: FluidBody): void {
   if (a.locked && b.locked) return;
   const ax = a.x + a.width / 2;
@@ -226,31 +232,30 @@ export function softCollide(a: FluidBody, b: FluidBody): void {
   const dx = bx - ax;
   const dy = by - ay;
   const dist = Math.hypot(dx, dy) || 0.001;
-  const minDist = (a.width + b.width + a.height + b.height) * 0.18;
+  // Smaller minDist → blobs can nestle / visually merge
+  const minDist = (a.width + b.width + a.height + b.height) * 0.14;
   if (dist >= minDist) return;
 
   const overlap = (minDist - dist) / minDist;
   const nx = dx / dist;
   const ny = dy / dist;
-  const push = overlap * 1.9;
-  const j = overlap * 0.28;
+  // Soft repulsion only when deeply overlapping
+  const push = overlap * overlap * 1.15;
+  const j = overlap * 0.16;
 
-  if (!a.locked) {
+  if (!a.locked && !a.fingerTarget) {
     a.vx -= nx * push;
     a.vy -= ny * push;
-    a.jiggle = Math.min(1.4, a.jiggle + j);
+    a.jiggle = Math.min(1.25, a.jiggle + j);
   }
-  if (!b.locked) {
+  if (!b.locked && !b.fingerTarget) {
     b.vx += nx * push;
     b.vy += ny * push;
-    b.jiggle = Math.min(1.4, b.jiggle + j);
+    b.jiggle = Math.min(1.25, b.jiggle + j);
   }
 }
 
-/**
- * Ambient “finger near ink” field - hover / trackpad glide without press
- * gently displaces nearby puddles (Inkling-like ambient tactility).
- */
+/** Ambient hover field — soft ink parting under the cursor */
 export function applyProximityField(
   body: FluidBody,
   px: number,
@@ -263,20 +268,17 @@ export function applyProximityField(
   const dx = cx - px;
   const dy = cy - py;
   const dist = Math.hypot(dx, dy) || 0.001;
-  const radius = Math.max(body.width, body.height) * 0.85 + 80;
+  const radius = Math.max(body.width, body.height) * 0.8 + 72;
   if (dist > radius) return;
 
   const falloff = 1 - dist / radius;
-  const force = falloff * falloff * 0.55 * strength;
-  // Soft push away from finger (wet ink parting)
+  const force = falloff * falloff * 0.42 * strength;
   body.vx += (dx / dist) * force;
   body.vy += (dy / dist) * force;
-  body.jiggle = Math.min(1.2, body.jiggle + falloff * 0.12);
+  body.jiggle = Math.min(1.15, body.jiggle + falloff * 0.1);
 }
 
-/**
- * Trackpad two-finger scroll / wheel - shove ink across the paper.
- */
+/** Trackpad two-finger scroll / wheel — shove ink across the paper */
 export function applyTrackpadPush(
   body: FluidBody,
   dx: number,
@@ -290,9 +292,9 @@ export function applyTrackpadPush(
   const dist = Math.hypot(cx - px, cy - py);
   const influence = Math.max(0, 1 - dist / 420);
   if (influence <= 0) return;
-  body.vx += dx * 0.08 * influence;
-  body.vy += dy * 0.08 * influence;
-  body.jiggle = Math.min(1.3, body.jiggle + influence * 0.2);
+  body.vx += dx * 0.075 * influence;
+  body.vy += dy * 0.075 * influence;
+  body.jiggle = Math.min(1.25, body.jiggle + influence * 0.18);
 }
 
 export function beginFingerGrab(
@@ -304,9 +306,9 @@ export function beginFingerGrab(
   const cy = body.y + body.height / 2;
   body.grabOffset = { x: pointerX - cx, y: pointerY - cy };
   body.fingerTarget = { x: pointerX, y: pointerY };
-  body.vx *= 0.3;
-  body.vy *= 0.3;
-  body.jiggle = Math.max(body.jiggle, 0.55);
+  body.vx *= 0.28;
+  body.vy *= 0.28;
+  body.jiggle = Math.max(body.jiggle, 0.5);
 }
 
 export function updateFingerGrab(
@@ -320,32 +322,43 @@ export function updateFingerGrab(
 export function releaseFingerGrab(body: FluidBody, samples: FluidSample[]): void {
   body.fingerTarget = null;
   const v = velocityFromSamples(samples);
-  // Fling residual from finger swipe
-  body.vx = v.vx * 0.95;
-  body.vy = v.vy * 0.95;
-  body.jiggle = Math.min(1.5, 0.4 + Math.hypot(v.vx, v.vy) * 0.045);
+  body.vx = v.vx * 0.9;
+  body.vy = v.vy * 0.9;
+  body.jiggle = Math.min(1.4, 0.35 + Math.hypot(v.vx, v.vy) * 0.04);
   body.settle = 0.55;
 }
 
 export function impulseSelect(body: FluidBody): void {
-  body.jiggle = Math.min(1.4, body.jiggle + 0.55);
-  body.settle = 0.45;
-  body.vx += (Math.random() - 0.5) * 0.8;
-  body.vy += (Math.random() - 0.5) * 0.8;
+  body.jiggle = Math.min(1.35, body.jiggle + 0.5);
+  body.settle = 0.4;
+  body.vx += (Math.random() - 0.5) * 0.7;
+  body.vy += (Math.random() - 0.5) * 0.7;
 }
 
 export function applyThrow(body: FluidBody, vx: number, vy: number): void {
   body.vx = vx;
   body.vy = vy;
-  body.jiggle = Math.min(1.5, 0.35 + Math.hypot(vx, vy) * 0.04);
-  body.settle = 0.6;
+  body.jiggle = Math.min(1.4, 0.32 + Math.hypot(vx, vy) * 0.038);
+  body.settle = 0.55;
   body.fingerTarget = null;
 }
 
-/** Grow a puddle while finger holds and moves (spilled ink spreads) */
+/** Grow a puddle while finger holds still (ink soaks into paper) */
 export function growPuddle(body: FluidBody, amount: number): void {
   const a = clamp(amount, 0, 8);
-  body.width += a * 0.55;
-  body.height += a * 0.48;
-  body.jiggle = Math.min(1.5, body.jiggle + 0.08);
+  body.width += a * 0.5;
+  body.height += a * 0.44;
+  body.jiggle = Math.min(1.35, body.jiggle + 0.07);
+}
+
+/**
+ * Fresh paint dab silhouette — matches About page organic ink masses:
+ * soft lobes, high tension curves, bean bias.
+ */
+export function inkBlobNodes(pressure: number, simple = false): BlobNode[] {
+  const soft = 0.68 + pressure * 0.25;
+  // Enough irregularity for lobed ink; not enough for spikes
+  const irreg = simple ? 0.32 + pressure * 0.14 : 0.4 + pressure * 0.22;
+  const count = simple ? 8 + Math.floor(pressure * 2) : 10 + Math.floor(pressure * 4);
+  return generateBlobNodes(count, soft, irreg);
 }

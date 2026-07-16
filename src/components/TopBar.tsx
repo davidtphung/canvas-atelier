@@ -10,9 +10,6 @@ export function TopBar() {
     location.pathname.endsWith('/about') ||
     location.pathname === '/donate' ||
     location.pathname.endsWith('/donate');
-  const aboutTab = new URLSearchParams(location.search).get('tab');
-  const isDonate = isAbout && aboutTab === 'donate';
-
   const projectName = useStudioStore((s) => s.projectName);
   const saveProject = useStudioStore((s) => s.saveProject);
   const clearCanvas = useStudioStore((s) => s.clearCanvas);
@@ -66,7 +63,7 @@ export function TopBar() {
         </div>
       ) : (
         <div className="topbar-project">
-          <p className="topbar-page-label micro">{isDonate ? 'Donate' : 'About'}</p>
+          <p className="topbar-page-label micro">About</p>
         </div>
       )}
 
@@ -81,17 +78,10 @@ export function TopBar() {
           </Link>
           <Link
             to="/about"
-            className={`btn btn-ghost topbar-nav-link ${isAbout && !isDonate ? 'is-active' : ''}`}
-            aria-current={isAbout && !isDonate ? 'page' : undefined}
+            className={`btn btn-ghost topbar-nav-link ${isAbout ? 'is-active' : ''}`}
+            aria-current={isAbout ? 'page' : undefined}
           >
             About
-          </Link>
-          <Link
-            to="/about?tab=donate"
-            className={`btn btn-ghost topbar-nav-link desktop-only ${isDonate ? 'is-active' : ''}`}
-            aria-current={isDonate ? 'page' : undefined}
-          >
-            Donate
           </Link>
         </nav>
 

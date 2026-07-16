@@ -76,7 +76,7 @@ export function ViewCounter({ variant = 'plaque' }: Props) {
             About
           </a>
           {' · '}
-          <a href="./about?tab=donate" className="site-credit-link">
+          <a href="./about?tab=donate" className="site-credit-link" title="Donate tab in About">
             Donate
           </a>
         </p>

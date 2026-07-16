@@ -26,23 +26,84 @@ export function snapToGrid(value: number, spacing: number): number {
   return Math.round(value / spacing) * spacing;
 }
 
-/** Generate organic blob nodes around a unit circle */
+/**
+ * Generate organic ink-mass nodes (About page / Inkling aesthetic).
+ * Soft lobed silhouettes with smooth tension — not spiky or polygonal.
+ *
+ * Uses multi-harmonic radius so forms feel like charcoal ink pools:
+ * broad lobes + gentle dimples, optional bean / kidney bias.
+ */
 export function generateBlobNodes(
   count: number,
   softness: number,
   irregularity: number,
   rng: () => number = Math.random,
 ): BlobNode[] {
+  const n = Math.max(6, Math.round(count));
+  const soft = clamp(softness, 0, 1);
+  const irreg = clamp(irregularity, 0, 1);
+
+  // Phase offsets for coherent organic lobes (not pure noise)
+  const phase1 = rng() * TAU;
+  const phase2 = rng() * TAU;
+  const phase3 = rng() * TAU;
+  // Mild “bean / kidney” squash bias (like About hero mass)
+  const beanPhase = rng() * TAU;
+  const beanAmt = 0.08 + irreg * 0.14 + rng() * 0.06;
+  // Occasional deeper bite (cutout-adjacent feel without a hole)
+  const biteAngle = rng() * TAU;
+  const biteWidth = 0.35 + rng() * 0.55;
+  const biteDepth = irreg * (0.08 + rng() * 0.12);
+
   const nodes: BlobNode[] = [];
-  for (let i = 0; i < count; i++) {
-    const base = i / count;
-    const jitter = (rng() - 0.5) * irregularity;
-    const angle = (base + jitter * 0.08) * TAU;
-    const radius = 0.72 + (rng() - 0.5) * irregularity * 0.45;
-    const tension = clamp(0.35 + softness * 0.4 + (rng() - 0.5) * 0.15, 0.15, 0.95);
-    nodes.push({ angle, radius: clamp(radius, 0.35, 1.15), tension });
+  for (let i = 0; i < n; i++) {
+    // Even angular spacing + tiny jitter (keeps path smooth)
+    const t = i / n;
+    const angleJitter = (rng() - 0.5) * irreg * 0.05;
+    const angle = (t + angleJitter) * TAU;
+
+    // Multi-scale organic radius (low + mid harmonics)
+    const h1 = Math.sin(angle * 2 + phase1) * (0.1 + irreg * 0.16);
+    const h2 = Math.sin(angle * 3 + phase2) * (0.05 + irreg * 0.1);
+    const h3 = Math.cos(angle * 5 + phase3) * (0.025 + irreg * 0.06);
+    const bean = Math.cos(angle - beanPhase) * beanAmt;
+    // Soft bite / indentation on one side
+    const biteDist = Math.abs(Math.atan2(Math.sin(angle - biteAngle), Math.cos(angle - biteAngle)));
+    const bite =
+      biteDist < biteWidth ? -biteDepth * (1 - biteDist / biteWidth) ** 2 : 0;
+    // Micro grain (ink edge roughness), damped by softness
+    const grain = (rng() - 0.5) * irreg * 0.06 * (1 - soft * 0.35);
+
+    // Base radius ~0.78 keeps mass full like About ellipses + path
+    let radius = 0.78 + h1 + h2 + h3 + bean + bite + grain;
+    radius = clamp(radius, 0.42, 1.18);
+
+    // High tension = smooth cubic handles (About-like soft curves)
+    const tension = clamp(
+      0.55 + soft * 0.35 + (rng() - 0.5) * 0.08 - irreg * 0.05,
+      0.38,
+      0.98,
+    );
+
+    nodes.push({ angle, radius, tension });
   }
   return nodes.sort((a, b) => a.angle - b.angle);
+}
+
+/**
+ * About-page hero style: one primary lobed mass silhouette.
+ * Slightly more asymmetric / bean-like than generic nodes.
+ */
+export function generateOrganicInkNodes(
+  rng: () => number = Math.random,
+  opts?: { lobes?: number; softness?: number },
+): BlobNode[] {
+  const soft = opts?.softness ?? 0.72;
+  const lobes = opts?.lobes ?? 2 + Math.floor(rng() * 2); // 2–3
+  const count = 10 + Math.floor(rng() * 4);
+  // Drive irregularity so multi-harmonic lobes show clearly
+  const irreg = 0.38 + rng() * 0.22 + (lobes - 2) * 0.06;
+  return generateBlobNodes(count, soft, irreg, rng);
 }
 
 /** Convert polar blob nodes to cartesian points in local shape space */
@@ -73,7 +134,7 @@ export function nodesToPoints(
 
 /**
  * Smooth closed path through points using cubic bezier approximation.
- * Tension modulates handle length for organic softness.
+ * Tension modulates handle length for organic softness (About-page ink curves).
  */
 export function pointsToPath(points: Point[], tensions: number[]): string {
   if (points.length < 3) return '';
@@ -85,17 +146,19 @@ export function pointsToPath(points: Point[], tensions: number[]): string {
     const p1 = points[i];
     const p2 = points[(i + 1) % n];
     const p3 = points[(i + 2) % n];
-    const t = tensions[i] ?? 0.5;
+    // Bias tension upward so edges stay soft and continuous
+    const t = clamp((tensions[i] ?? 0.55) * 1.05 + 0.08, 0.35, 1.05);
 
     if (i === 0) {
       cmds.push(`M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`);
     }
 
-    // Catmull-Rom → cubic Bezier
-    const c1x = p1.x + ((p2.x - p0.x) / 6) * (t + 0.5);
-    const c1y = p1.y + ((p2.y - p0.y) / 6) * (t + 0.5);
-    const c2x = p2.x - ((p3.x - p1.x) / 6) * (t + 0.5);
-    const c2y = p2.y - ((p3.y - p1.y) / 6) * (t + 0.5);
+    // Catmull-Rom → cubic Bezier (slightly longer handles = rounder ink)
+    const k = (t + 0.55) / 6;
+    const c1x = p1.x + (p2.x - p0.x) * k;
+    const c1y = p1.y + (p2.y - p0.y) * k;
+    const c2x = p2.x - (p3.x - p1.x) * k;
+    const c2y = p2.y - (p3.y - p1.y) * k;
 
     cmds.push(
       `C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`,

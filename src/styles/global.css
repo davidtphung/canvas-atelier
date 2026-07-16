@@ -151,15 +151,16 @@ svg {
 
 .app-main {
   display: grid;
-  grid-template-columns: var(--rail-width) 1fr;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr);
   min-height: 0;
   height: 100%;
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
 .app-main.inspector-open {
-  grid-template-columns: var(--rail-width) 1fr var(--inspector-width);
+  grid-template-columns: var(--rail-width) minmax(0, 1fr) minmax(0, var(--inspector-width));
 }
 
 .app-stage {
@@ -306,7 +307,17 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.field-row > * {
+  min-width: 0;
+}
+
+.field-row .field-value {
+  flex-shrink: 0;
 }
 
 .field label,
@@ -517,6 +528,19 @@ svg {
   50% { opacity: 0.14; }
 }
 
+/* Medium: keep stage usable when inspector is open */
+@media (max-width: 1100px) {
+  :root {
+    --inspector-width: 260px;
+  }
+}
+
+@media (max-width: 960px) {
+  :root {
+    --inspector-width: 240px;
+  }
+}
+
 /* Mobile adaptations */
 @media (max-width: 860px) {
   .studio-shell {
@@ -526,8 +550,8 @@ svg {
 
   .app-main,
   .app-main.inspector-open {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 
   .app-main > .toolbar {
@@ -551,6 +575,21 @@ svg {
 
   .desktop-only {
     display: none !important;
+  }
+
+  .toast-region {
+    left: var(--space-3);
+    right: var(--space-3);
+    transform: none;
+    width: auto;
+    max-width: none;
+    align-items: stretch;
+  }
+
+  .toast {
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
   }
 }
 

@@ -6,11 +6,12 @@ const STYLE_PRESETS: Record<
   ArtStyle,
   { nodeCount: number; irregularity: number; scale: number; countBias: number }
 > = {
-  calm: { nodeCount: 8, irregularity: 0.28, scale: 1, countBias: 0.7 },
-  bold: { nodeCount: 7, irregularity: 0.42, scale: 1.15, countBias: 1.1 },
-  playful: { nodeCount: 10, irregularity: 0.55, scale: 0.9, countBias: 1.2 },
-  architectural: { nodeCount: 6, irregularity: 0.18, scale: 1.05, countBias: 0.85 },
-  'soft-surreal': { nodeCount: 12, irregularity: 0.48, scale: 1.08, countBias: 0.95 },
+  // Tuned for About-page organic ink: smooth lobes, soft curves
+  calm: { nodeCount: 10, irregularity: 0.36, scale: 1, countBias: 0.7 },
+  bold: { nodeCount: 9, irregularity: 0.48, scale: 1.15, countBias: 1.1 },
+  playful: { nodeCount: 12, irregularity: 0.52, scale: 0.9, countBias: 1.2 },
+  architectural: { nodeCount: 8, irregularity: 0.28, scale: 1.05, countBias: 0.85 },
+  'soft-surreal': { nodeCount: 13, irregularity: 0.5, scale: 1.08, countBias: 0.95 },
 };
 
 function createShape(
@@ -21,9 +22,11 @@ function createShape(
   name?: string,
 ): Shape {
   const preset = STYLE_PRESETS[style];
+  // Bias softness up so silhouettes stay round and ink-like
+  const soft = clamp(softness * 0.85 + 0.2, 0.35, 1);
   const nodes = generateBlobNodes(
     preset.nodeCount,
-    softness,
+    soft,
     preset.irregularity,
     rng,
   );
@@ -31,7 +34,8 @@ function createShape(
     id: nanoid(10),
     kind: 'blob',
     name: name ?? 'Form',
-    rotation: (rng() - 0.5) * (style === 'architectural' ? 8 : 24),
+    // Mild rotation like About ellipses (-18° / 12°)
+    rotation: (rng() - 0.5) * (style === 'architectural' ? 10 : 22),
     nodes,
     fill: '#1A1A1A',
     opacity: 1,

@@ -8,17 +8,8 @@ type AboutTab = 'about' | 'donate';
 
 export function AboutPage() {
   const a11y = useStudioStore((s) => s.a11y);
-  const [params, setParams] = useSearchParams();
-  const raw = params.get('tab');
-  const tab: AboutTab = raw === 'donate' ? 'donate' : 'about';
-
-  const setTab = (next: AboutTab) => {
-    if (next === 'about') {
-      setParams({}, { replace: true });
-    } else {
-      setParams({ tab: next }, { replace: true });
-    }
-  };
+  const [params] = useSearchParams();
+  const tab: AboutTab = params.get('tab') === 'donate' ? 'donate' : 'about';
 
   return (
     <div className={`app-shell about-shell ${a11y.largeTargets ? 'large-targets' : ''}`}>
@@ -29,28 +20,28 @@ export function AboutPage() {
 
       <main className="about-page" id="about-main">
         <div className="about-tabs" role="tablist" aria-label="About sections">
-          <button
-            type="button"
+          <Link
+            to="/about"
             role="tab"
             id="tab-about"
             aria-selected={tab === 'about'}
             aria-controls="panel-about"
             className={`about-tab ${tab === 'about' ? 'is-active' : ''}`}
-            onClick={() => setTab('about')}
+            replace
           >
             About
-          </button>
-          <button
-            type="button"
+          </Link>
+          <Link
+            to="/about?tab=donate"
             role="tab"
             id="tab-donate"
             aria-selected={tab === 'donate'}
             aria-controls="panel-donate"
             className={`about-tab ${tab === 'donate' ? 'is-active' : ''}`}
-            onClick={() => setTab('donate')}
+            replace
           >
             Donate
-          </button>
+          </Link>
         </div>
 
         {tab === 'about' ? (
@@ -113,13 +104,13 @@ export function AboutPage() {
               <p>
                 Canvas Atelier is a quiet, tactile studio for making abstract posters. It draws
                 from mid-century modernism, Eames-era clarity, Apple Human Interface restraint,
-                and the editorial calm of pages like Thinking Machines’ Inkling announcement,
+                and the editorial calm of pages like Thinking Machines Inkling announcement,
                 not as a clone, but as a standard of intention.
               </p>
               <p>
                 The default surface is archival cream paper with a drafting grid. Forms are
                 organic charcoal masses with cutouts. You can spill ink with your finger, mouse,
-                or trackpad; press harder for larger blobs; shove paint with a two-finger scroll;
+                or trackpad; press harder for larger pools; shove paint with a two-finger scroll;
                 and export stills or motion when the composition feels finished.
               </p>
             </section>
@@ -128,7 +119,7 @@ export function AboutPage() {
               <h2 className="section-label">What you can do</h2>
               <ul className="about-list">
                 <li>
-                  <strong>Paint</strong>: Spilled ink mode with pressure-sensitive dabs
+                  <strong>Paint</strong>: Liquid ink brush with real spill physics
                 </li>
                 <li>
                   <strong>Compose</strong>: Styles, grid, cutouts, natural-language refine
@@ -171,9 +162,9 @@ export function AboutPage() {
               <Link to="/" className="btn btn-primary">
                 Open the studio
               </Link>
-              <button type="button" className="btn btn-secondary" onClick={() => setTab('donate')}>
+              <Link to="/about?tab=donate" className="btn btn-secondary" replace>
                 Donate
-              </button>
+              </Link>
               <a
                 href="https://x.com/davidtphung"
                 target="_blank"
@@ -196,9 +187,9 @@ export function AboutPage() {
               <Link to="/" className="btn btn-primary">
                 Open the studio
               </Link>
-              <button type="button" className="btn btn-secondary" onClick={() => setTab('about')}>
+              <Link to="/about" className="btn btn-secondary" replace>
                 About
-              </button>
+              </Link>
             </footer>
           </div>
         )}

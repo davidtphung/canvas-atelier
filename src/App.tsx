@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useStudioStore } from './store/useStudioStore';
 import { applyDocumentTheme, resolveTheme } from './lib/theme';
+import { initPerfProfile } from './lib/perf';
 import { StudioPage } from './pages/StudioPage';
 import { AboutPage } from './pages/AboutPage';
 import './App.css';
@@ -13,6 +14,8 @@ function ThemeBootstrap() {
   useEffect(() => {
     init();
   }, [init]);
+
+  useEffect(() => initPerfProfile(), []);
 
   useEffect(() => {
     document.documentElement.dataset.highContrast = String(a11y.highContrast);

@@ -61,7 +61,7 @@ const defaultCanvas: CanvasSettings = {
   background: '#F4EFE6',
   shapeColor: '#1A1A1A',
   density: 1,
-  softness: 0.55,
+  softness: 0.68,
   contrast: 1,
   negativeSpace: 0.45,
   style: 'calm',
@@ -171,6 +171,20 @@ export type StudioState = {
   updateShape: (id: string, partial: Partial<Shape>) => void;
   updateShapes: (updater: (shapes: Shape[]) => Shape[]) => void;
   addBlob: (x?: number, y?: number) => void;
+  /**
+   * Add a liquid ink puddle without switching tools or pushing history.
+   * Caller manages history (once per stroke). Returns new shape id.
+   */
+  addInkPuddle: (opts: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    nodes?: Shape['nodes'];
+    name?: string;
+  }) => string;
+  /** Remove shapes by id without history (for fluid merge absorb). */
+  removeShapesSilent: (ids: string[]) => void;
   deleteSelected: () => void;
   duplicateSelected: () => void;
   reorderShape: (id: string, direction: 'up' | 'down' | 'top' | 'bottom') => void;
@@ -438,6 +452,35 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     });
     get().scheduleAutosave();
     get().toast('Added form');
+  },
+
+  addInkPuddle: ({ x, y, width, height, nodes, name }) => {
+    const s = get();
+    const shape = addBlobAt(s.canvas, x, y, s.shapes.length);
+    shape.x = x - width / 2;
+    shape.y = y - height / 2;
+    shape.width = width;
+    shape.height = height;
+    shape.name = name ?? `Ink ${s.shapes.length + 1}`;
+    shape.fill = s.canvas.shapeColor;
+    if (nodes) shape.nodes = nodes;
+    set({
+      shapes: [...s.shapes, shape],
+      selectedIds: [shape.id],
+      // Keep current tool (ink brush stays active)
+      updatedAt: new Date().toISOString(),
+    });
+    return shape.id;
+  },
+
+  removeShapesSilent: (ids) => {
+    if (!ids.length) return;
+    const idSet = new Set(ids);
+    set((s) => ({
+      shapes: s.shapes.filter((sh) => !idSet.has(sh.id) && !idSet.has(sh.parentId ?? '')),
+      selectedIds: s.selectedIds.filter((id) => !idSet.has(id)),
+      updatedAt: new Date().toISOString(),
+    }));
   },
 
   deleteSelected: () => {

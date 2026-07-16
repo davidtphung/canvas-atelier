@@ -73,6 +73,10 @@
   font-size: 0.8125rem;
   color: var(--charcoal-mid);
   letter-spacing: 0.01em;
+  line-height: 1.45;
+  max-width: 100%;
+  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 .site-credit-link {
