@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none" role="img" aria-label="Canvas Atelier">
+  <rect width="1200" height="630" fill="#F4EFE6"/>
+  <rect width="1200" height="630" fill="url(#vignette)"/>
+
+  <!-- Drafting grid -->
+  <g stroke="#1A1A1A" stroke-opacity="0.07" stroke-width="1">
+    <path d="M40 0v630M80 0v630M120 0v630M160 0v630M200 0v630M240 0v630M280 0v630M320 0v630M360 0v630M400 0v630M440 0v630M480 0v630M520 0v630M560 0v630M600 0v630M640 0v630M680 0v630M720 0v630M760 0v630M800 0v630M840 0v630M880 0v630M920 0v630M960 0v630M1000 0v630M1040 0v630M1080 0v630M1120 0v630M1160 0v630"/>
+    <path d="M0 40h1200M0 80h1200M0 120h1200M0 160h1200M0 200h1200M0 240h1200M0 280h1200M0 320h1200M0 360h1200M0 400h1200M0 440h1200M0 480h1200M0 520h1200M0 560h1200M0 600h1200"/>
+  </g>
+
+  <!-- Art mass — right third, clear of title -->
+  <g transform="translate(40 0)">
+    <path
+      fill="#1A1A1A"
+      d="M640 400
+         C620 250 700 130 850 115
+         C990 100 1100 170 1130 280
+         C1160 390 1110 500 980 540
+         C840 585 680 555 640 430
+         C635 415 635 408 640 400Z"
+    />
+    <ellipse cx="980" cy="145" rx="95" ry="78" fill="#1A1A1A" transform="rotate(-20 980 145)"/>
+    <path
+      fill="#1A1A1A"
+      d="M1020 455
+         C1075 425 1155 445 1175 510
+         C1195 575 1140 615 1065 615
+         C990 615 950 555 965 500
+         C972 470 995 460 1020 455Z"
+    />
+    <ellipse cx="720" cy="500" rx="58" ry="40" fill="#1A1A1A" transform="rotate(16 720 500)"/>
+    <!-- Cutouts -->
+    <ellipse cx="900" cy="310" rx="68" ry="60" fill="#F4EFE6" transform="rotate(10 900 310)"/>
+    <circle cx="1020" cy="210" r="26" fill="#F4EFE6"/>
+  </g>
+
+  <!-- Clean type lockup — left editorial column -->
+  <g font-family="Arial, Helvetica, sans-serif" fill="#1A1A1A">
+    <text x="72" y="200" font-size="14" font-weight="600" letter-spacing="4" fill="#3A3A3A">STUDIO · POSTER SYSTEM</text>
+    <text x="72" y="290" font-size="64" font-weight="700" letter-spacing="-1.5">Canvas Atelier</text>
+    <text x="72" y="348" font-size="24" font-weight="400" fill="#2C2C2C">Compose with restraint</text>
+    <text x="72" y="400" font-size="17" font-weight="400" fill="#3A3A3A">Generative poster studio · cream paper · organic ink</text>
+    <text x="72" y="540" font-size="13" font-weight="600" letter-spacing="3" fill="#3A3A3A">NLT143 RESEARCH</text>
+  </g>
+
+  <rect x="28" y="28" width="1144" height="574" rx="2" stroke="#1A1A1A" stroke-opacity="0.09" stroke-width="1" fill="none"/>
+
+  <defs>
+    <radialGradient id="vignette" cx="35%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#F4EFE6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
