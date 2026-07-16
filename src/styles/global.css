@@ -19,11 +19,15 @@ body {
   min-height: 100dvh;
   font-family: var(--font-ui);
   font-size: var(--text-body);
+  font-feature-settings: 'ss01' on, 'cv11' on;
+  font-optical-sizing: auto;
   line-height: var(--leading-body);
+  letter-spacing: -0.011em;
   color: var(--ink);
   background: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -85,7 +89,7 @@ svg {
 .display-title {
   font-family: var(--font-display);
   font-size: var(--text-display);
-  font-weight: 500;
+  font-weight: 600;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
   margin: 0;
@@ -411,7 +415,7 @@ svg {
 .modal h2 {
   font-family: var(--font-display);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: var(--tracking-display);
   margin: 0 0 var(--space-2);
 }
